@@ -1,4 +1,5 @@
 ﻿using BehaviorTree;
+using System;
 using System.Collections.Generic;
 using TaleWorlds.MountAndBlade;
 
@@ -30,11 +31,28 @@ namespace BehaviorTreeWrapper
         public static BasicTree BuildBasicTree(Agent agent)
         {
             BasicTree tree = new BasicTree(agent);
-            Sequence rootNode = new Sequence(tree, new List<Node> { new Sequence(tree, new List<Node> { new PrintTask(tree) }, new TrueDecorators(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)) });
+            Sequence rootNode = new Sequence(tree);
+            /*              root
+             *            sequence
+             *     printTask    printTask2
+             */
+
+            /*              root
+             *            sequence
+             *      (spotted)     (hit)
+             *     printTask    printTask2
+             */
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new NotifiedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask2(tree)}, new NotifiedDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
             //BannerlordBTListener listener = new(SubscriptionPossibilities.OnMissionTick, tree);
             //tree.BuildTree(rootNode, listener);
             tree.BuildTree(rootNode);
             return tree;
+        }
+        // @TODO test if these are 
+        internal void RetireTree()
+        {
+            CurrentControlNode.RemoveDecorators();
         }
     }
 }

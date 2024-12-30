@@ -1,5 +1,7 @@
 ﻿using TaleWorlds.MountAndBlade;
 using System.Collections.Generic;
+using TaleWorlds.Core;
+using System.Linq;
 
 namespace BehaviorTreeWrapper
 {
@@ -29,10 +31,19 @@ namespace BehaviorTreeWrapper
         }
         public void UnSubscribe(BannerlordBTListener listener)
         {
+            listener.NotifyWithCancel();
             actions[listener.SubscribesTo].Remove(listener);
+        }
+        public List<BannerlordBTListener> GetAllListeners()
+        {
+            List<BannerlordBTListener> allListeners = new();
+            foreach (List<BannerlordBTListener> listenerList in actions.Values)
+                allListeners.AddRange(listenerList);
+            return allListeners;
         }
         public BehaviorTreeMissionLogic()
         {
+            Globals.IsMissionInitialized = false;
             BehaviorTreeBannerlordWrapper.Instance.CurrentMission = this;
         }
         //public override void OnAgentCreated(Agent agent)
@@ -61,7 +72,6 @@ namespace BehaviorTreeWrapper
             }
             else
             {
-                Globals.IsMissionInitialized = false;
                 giveTreesTime += dt;
             }
             //actions.TryGetValue(SubscriptionPossibilities.OnAgentAlarmedStateChanged, out var listeners);
@@ -90,7 +100,20 @@ namespace BehaviorTreeWrapper
         }
         public override void OnAgentHit(Agent affectedAgent, Agent affectorAgent, in MissionWeapon affectorWeapon, in Blow blow, in AttackCollisionData attackCollisionData)
         {
-            base.OnAgentHit(affectedAgent, affectorAgent, affectorWeapon, blow, attackCollisionData);
+            actions.TryGetValue(SubscriptionPossibilities.OnAgentHit, out var listeners);
+            if (listeners == null) return;
+            foreach (var listener in listeners)
+            {
+                if (affectedAgent.GetBehaviorTree() == listener.NotifiedObject.NotifiedTree)
+                {
+                    listener.Notify();
+                    break;
+                }
+            }
+        }
+        public override void OnEndMissionInternal()
+        {
+            BehaviorTreeBannerlordWrapper.Instance.Dispose();
         }
     }
 }

@@ -11,6 +11,7 @@ namespace BehaviorTreeWrapper
         {
             SubscribesTo = subscribesTo;
             Subscribe();
+            NotifiedObject = notifiable;
         }
         public override void Subscribe()
         {
@@ -23,7 +24,12 @@ namespace BehaviorTreeWrapper
 
         public void Notify()
         {
-            throw new System.NotImplementedException();
+            NotifiedObject.Notify();
+            Signal(true);
+        }
+        public void NotifyWithCancel()
+        {
+            Signal(false);
         }
     }
     //public class BannerlordBTStandaloneListener : BannerlordBTListener 
@@ -56,16 +62,22 @@ namespace BehaviorTreeWrapper
         {
         }
     }
-    public class TrueDecorators : BannerlordDecorator
+    public class NotifiedDecorator : BannerlordDecorator
     {
         BasicTree tree;
-        public TrueDecorators(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        bool hasBeenNotified = false;
+        public NotifiedDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
         {
             this.tree = tree;
         }
         public override bool Evaluate()
         {
-            return true;
+            if (hasBeenNotified)
+            {
+                hasBeenNotified = false;
+                return true;
+            }
+            return false;
         }
         public bool Evaluate(AIStateFlag flags)
         {
@@ -76,7 +88,7 @@ namespace BehaviorTreeWrapper
 
         public override void Notify()
         {
-            throw new System.NotImplementedException();
+            hasBeenNotified = true;
         }
     }
 

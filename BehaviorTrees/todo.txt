@@ -1,0 +1,14 @@
+﻿TO DO
+- give variables to descriptors for Evaluation
+- refactor the tree to be an AgentComponent instead of an outside object if possible
+- refactor how the tree is built, to make it easier to understand
+- create a couple trees
+
+CLEANUP
+- clear all the commited code from tests
+- refactor notification for descriptors and listeners
+- remove the Tree property from most objects if they don't need it
+
+TESTING
+- delete objects when exiting a scene - check for memory leaks by opening & ending scenes multiple times
+- move nodes when one finishes - check with a more complicated tree

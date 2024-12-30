@@ -1,11 +1,14 @@
 ﻿using BehaviorTree;
+using System;
+using System.Threading;
 
 namespace BehaviorTreeWrapper
 {
-    public class BehaviorTreeBannerlordWrapper
+    public class BehaviorTreeBannerlordWrapper : IDisposable
     {
         public BehaviorTreeMissionLogic CurrentMission { get;  set; }
         static BehaviorTreeBannerlordWrapper _instance;
+        private bool _disposed = false;
         public static BehaviorTreeBannerlordWrapper Instance
         {
             get
@@ -14,7 +17,6 @@ namespace BehaviorTreeWrapper
                 _instance = new BehaviorTreeBannerlordWrapper();
                 return _instance;
             }
-
         }
         public void Subscribe(BannerlordBTListener listener)
         {
@@ -23,6 +25,22 @@ namespace BehaviorTreeWrapper
         public void UnSubscribe(BannerlordBTListener listener)
         {
             CurrentMission.UnSubscribe(listener);
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)//true)//!_disposed)
+            {
+                foreach (BasicTree tree in CurrentMission.trees.Values)
+                {
+                    tree.Dispose();
+                    tree.RetireTree();
+                }
+                //foreach (BannerlordBTListener listener in CurrentMission.GetAllListeners())
+                //    listener.NotifyWithCancel();
+                CurrentMission = null;
+                _disposed = true;
+            }
         }
     }
 }

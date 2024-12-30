@@ -14,9 +14,12 @@ namespace BehaviorTree
 
         public abstract void Subscribe();
         public abstract void UnSubscribe();
-        public void Signal()
+        public void Signal(bool success)
         {
-            _tcs.TrySetResult(true);
+            if (success)
+                _tcs.TrySetResult(true);
+            else
+                _tcs.TrySetCanceled();
             _tcs = new TaskCompletionSource<bool>();
         }
         public Task<bool> NotifyAsync()
