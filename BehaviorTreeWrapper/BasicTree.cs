@@ -7,16 +7,11 @@ namespace BehaviorTreeWrapper
 {
     public class BannerlordTree : BehaviorTree.BehaviorTree
     {
-        Agent Agent;
+        public Agent Agent { get; }
 
         public BannerlordTree(Agent agent)
         {
             Agent = agent;
-        }
-
-        public override void Notify()
-        {
-            throw new System.NotImplementedException();
         }
     }
     public class BasicTree : BannerlordTree
@@ -28,6 +23,7 @@ namespace BehaviorTreeWrapper
             //RootNode = seq;
             //RootNode.Update();
         }
+
         public static BasicTree BuildBasicTree(Agent agent)
         {
             BasicTree tree = new BasicTree(agent);
@@ -40,10 +36,15 @@ namespace BehaviorTreeWrapper
             /*              root
              *            sequence
              *      (spotted)     (hit)
-             *     printTask    printTask2
+             *     printTask    printTask2, printTask3
              */
-            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new NotifiedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
-            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask2(tree)}, new NotifiedDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
+            //var printTask = new PrintTask2(tree);
+            //BTNode<BehaviorTree.BehaviorTree> node = (BTNode<BehaviorTree.BehaviorTree>)printTask;
+            //new List<BTNode<BannerlordTree>> { printTask };
+            //rootNode.BuildNode(new Sequence(tree, new List<BTNode<BannerlordTree>> { (BTNode<BehaviorTree.BehaviorTree>)printTask }, new AlarmedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
+            
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new AlarmedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask2(tree), new PrintTask3(tree) }, new HitDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
             //BannerlordBTListener listener = new(SubscriptionPossibilities.OnMissionTick, tree);
             //tree.BuildTree(rootNode, listener);
             tree.BuildTree(rootNode);

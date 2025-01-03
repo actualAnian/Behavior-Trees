@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace BehaviorTree
 {
@@ -7,7 +8,7 @@ namespace BehaviorTree
         public BehaviorTree Tree;
         protected BTListener listener;
         public CancellationTokenSource CancellationTokenSource { get; }
-        BehaviorTree INotifiable.NotifiedTree { get { return Tree; } }
+        //BehaviorTree INotifiable.NotifiedTree { get { return Tree; } }
 
         protected BTDecorator(BehaviorTree tree)
         {
@@ -25,11 +26,9 @@ namespace BehaviorTree
         {
             listener.UnSubscribe();
         }
-        public void NotifyTree()
-        {
-            Tree.NotifyOnPropertyChange();
-        }
 
-        public abstract void Notify();
+        public virtual void Notify(List<object> data)
+        {
+        }
     }
 }

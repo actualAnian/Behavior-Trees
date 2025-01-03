@@ -1,4 +1,5 @@
 ﻿using BehaviorTree;
+using System.Collections.Generic;
 using static TaleWorlds.MountAndBlade.Agent;
 
 namespace BehaviorTreeWrapper
@@ -6,12 +7,10 @@ namespace BehaviorTreeWrapper
     public class BannerlordBTListener : BTListener
     {
         public SubscriptionPossibilities SubscribesTo { get; set; }
-        public INotifiable NotifiedObject { get; set; }
-        public BannerlordBTListener(SubscriptionPossibilities subscribesTo, INotifiable notifiable) : base(notifiable)
+        public BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree.BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
         {
             SubscribesTo = subscribesTo;
             Subscribe();
-            NotifiedObject = notifiable;
         }
         public override void Subscribe()
         {
@@ -22,9 +21,9 @@ namespace BehaviorTreeWrapper
             BehaviorTreeBannerlordWrapper.Instance.UnSubscribe(this);
         }
 
-        public void Notify()
+        public override void Notify(List<object> data)
         {
-            NotifiedObject.Notify();
+            Notifies.Notify(data);
             Signal(true);
         }
         public void NotifyWithCancel()
@@ -55,72 +54,52 @@ namespace BehaviorTreeWrapper
     {
         protected BannerlordDecorator(BehaviorTree.BehaviorTree tree, SubscriptionPossibilities subscribesTo) : base(tree)
         {
-            listener = new BannerlordBTListener(subscribesTo, this);
-            //listener = new BannerlordBTDecoratorListener(this, subscribesTo);
+            listener = new BannerlordBTListener(subscribesTo, tree, this);
         }
         public override void Update()
         {
         }
     }
-    public class NotifiedDecorator : BannerlordDecorator
+    public class AlarmedDecorator : BannerlordDecorator
     {
         BasicTree tree;
-        bool hasBeenNotified = false;
-        public NotifiedDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        private bool alreadyAlarmed = false;
+        public AlarmedDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
         {
             this.tree = tree;
         }
         public override bool Evaluate()
         {
-            if (hasBeenNotified)
+            if ((tree.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
             {
-                hasBeenNotified = false;
+                alreadyAlarmed = true;
                 return true;
             }
             return false;
         }
-        public bool Evaluate(AIStateFlag flags)
+        public override void Notify(List<object> data)
         {
-            //return flags.HasFlag
-            tree.IsSuspicious = true;
-            return true;
-        }
-
-        public override void Notify()
-        {
-            hasBeenNotified = true;
+            base.Notify(data);
         }
     }
 
-
-
-
-
-
-
-
-    //public class HealthBelow50PercentDecorators : IDecorator
-    //{
-    //    public string Name { get; set; }
-
-    //    public bool Evaluate(Agent agent)
-    //    {
-    //        return (agent.HealthLimit / 2 > agent.Health);
-    //    }
-
-    //    public bool Evaluate()
-    //    {
-    //        throw new System.NotImplementedException();
-    //    }
-
-    //    public bool notify()
-    //    {
-    //        return true;
-    //    }
-
-    //    public void update()
-    //    {
-    //        BehaviorTreeBannerlordWrapper.Instance.subscribe(this);
-    //    }
-    //}
+    public class HitDecorator : BannerlordDecorator
+    {
+        BasicTree tree;
+        private bool hasBeenHit = false;
+        public HitDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        {
+            this.tree = tree;
+        }
+        public override bool Evaluate()
+        {
+            if (!hasBeenHit) return false;
+            hasBeenHit = false;
+            return true;
+        }
+        public override void Notify(List<object> data)
+        {
+            hasBeenHit = true;
+        }
+    }
 }

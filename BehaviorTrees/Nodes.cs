@@ -7,7 +7,7 @@ namespace BehaviorTree
 {
     public abstract class BTNode
     {
-        public BehaviorTree tree;
+        internal BehaviorTree tree;
         public virtual BTDecorator decorator
         { 
             get
@@ -19,13 +19,12 @@ namespace BehaviorTree
         {
             this.tree = tree;
         }
-        public abstract void RemoveDecorators();
         public virtual async Task<bool> Execute() { return true; }
         //public void Update()
         //{
         //    decorator?.Update();
         //}
-        public abstract void UpdateTreeProperty();
+        //public abstract void UpdateTreeProperty();
 
     }
     public abstract class BTControlNode : BTNode
@@ -92,18 +91,13 @@ namespace BehaviorTree
         {
             RemoveDecorators();
         }
-        public override void RemoveDecorators()
+        public void RemoveDecorators()
         {
             foreach (BTControlNode chi in controlChildren)
             {
                 chi.decorator?.Remove();
             }
         }
-        public override void UpdateTreeProperty()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void ClearTasks()
         {
             foreach(KeyValuePair<Task<bool>, BTDecorator> taskPair in tasks)
@@ -164,11 +158,13 @@ namespace BehaviorTree
             return true;
         }
     }
-    public abstract class BTTask : BTNode
+    public abstract class BTTask<TTree> : BTNode where TTree : BehaviorTree
     {
         BTListener? isExecutedListener;
-        protected BTTask(BehaviorTree tree, BTListener? listener = null) : base(tree) 
+        protected TTree Tree { get; private set; }
+        protected BTTask(TTree tree, BTListener? listener = null) : base(tree) 
         {
+            Tree = tree;
             isExecutedListener = listener;
         }
 

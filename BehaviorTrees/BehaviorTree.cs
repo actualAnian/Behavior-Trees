@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BehaviorTree
 {
-    public abstract class BehaviorTree : INotifiable, IDisposable
+    public abstract class BehaviorTree : IDisposable
     {
 
         private CancellationTokenSource _cancellationTokenSource;
@@ -23,8 +23,6 @@ namespace BehaviorTree
         public BehaviorTree BuildTree(BTControlNode rootNode, BTListener listener)
         {
             CurrentControlNode = RootNode = rootNode;
-            //this.listener = listener;
-            //listener.Subscribe();
             _cancellationTokenSource = new CancellationTokenSource();
             ExecuteNode(_cancellationTokenSource.Token);
             return this;
@@ -45,12 +43,6 @@ namespace BehaviorTree
                 int a = 5;
             }
         }
-        public void NotifyOnPropertyChange()
-        {
-            CurrentControlNode.Reevaluate();
-        }
-        public abstract void Notify();
-
         public void Dispose()
         {
             if (!_disposed)
