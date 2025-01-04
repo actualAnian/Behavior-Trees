@@ -1,5 +1,4 @@
-﻿using BehaviorTree;
-using System;
+﻿using System;
 using System.Threading;
 
 namespace BehaviorTreeWrapper
@@ -31,7 +30,7 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed)//true)//!_disposed)
             {
-                foreach (BasicTree tree in CurrentMission.trees.Values)
+                foreach (MovementTree tree in CurrentMission.trees.Values)
                 {
                     tree.Dispose();
                     tree.RetireTree();

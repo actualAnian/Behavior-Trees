@@ -17,11 +17,11 @@ namespace BehaviorTreeWrapper
                 throw new Exception("BehaviorTreeWrapper.Extensions.AddBehaviorTree error, key already exists");
             }
             NO++;
-            BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees[agent.Origin.Seed] = BasicTree.BuildBasicTree(agent);
+            BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees[agent.Origin.Seed] = MovementTree.BuildBasicTree(agent);
 //            BehaviorTreeMissionLogic.Instance.trees[agent] = new BasicTree(agent);
         }
 
-        public static BasicTree? GetBehaviorTree(this Agent agent)
+        public static MovementTree? GetBehaviorTree(this Agent agent)
         {
             if (agent.Origin == null) return null;
             if (!BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees.ContainsKey(agent.Origin.Seed)) return null;

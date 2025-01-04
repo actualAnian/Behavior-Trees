@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BehaviorTree
+namespace BehaviorTrees
 {
     public abstract class BTNode
     {
         internal BehaviorTree tree;
-        public virtual BTDecorator decorator
-        { 
+        public virtual AbstractDecorator decorator
+        {
             get
-            { 
+            {
                 return null;
             }
         }
@@ -32,23 +32,23 @@ namespace BehaviorTree
         public List<BTNode> taskChildren = new();
         public List<BTControlNode> controlChildren = new();
         public List<BTNode> currentlyExecutableChildren = new();
-        private BTDecorator? _decorator;
-        public override BTDecorator decorator { get { return _decorator; } }
+        private AbstractDecorator? _decorator;
+        public override AbstractDecorator decorator { get { return _decorator; } }
         public List<BTListener> Listeners { get; private set; }
-        protected Dictionary<Task<bool>, BTDecorator> tasks = new Dictionary<Task<bool>, BTDecorator>();
+        protected Dictionary<Task<bool>, AbstractDecorator> tasks = new Dictionary<Task<bool>, AbstractDecorator>();
         public Task<bool> AddDecoratorsListeners()
         {
             BTListener newListener = decorator.Add();
             return newListener.NotifyAsync();
         }
-        protected BTControlNode(BehaviorTree tree, BTDecorator? decorator = null, List<BTNode>? children = null) : base(tree)
+        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null) : base(tree)
         {
             _decorator = decorator;
             if (children == null)
             {
                 taskChildren = new List<BTNode>();
                 controlChildren = new List<BTControlNode>();
-            } 
+            }
             else taskChildren = children;
         }
 
@@ -66,7 +66,7 @@ namespace BehaviorTree
         public void Reevaluate() //@TODO put them in order
         {
             currentlyExecutableChildren = new(taskChildren);
-            foreach (BTControlNode chi in controlChildren) 
+            foreach (BTControlNode chi in controlChildren)
             {
                 if (chi.Evaluate())
                     currentlyExecutableChildren.Add(chi);
@@ -100,7 +100,7 @@ namespace BehaviorTree
         }
         public void ClearTasks()
         {
-            foreach(KeyValuePair<Task<bool>, BTDecorator> taskPair in tasks)
+            foreach (KeyValuePair<Task<bool>, AbstractDecorator> taskPair in tasks)
             {
                 taskPair.Value.CancellationTokenSource.Cancel();
                 taskPair.Value.CancellationTokenSource.Dispose();
@@ -110,16 +110,16 @@ namespace BehaviorTree
     }
     public class Selector : BTControlNode
     {
-        public Selector(BehaviorTree tree, List<BTNode>? children = null, BTDecorator? decorator = null) : base(tree, decorator, children) { }
+        public Selector(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
         protected override async Task<bool> ExecuteImplementation()
         {
-            await base.Execute();
+            await Execute();
             bool shouldStop = true;
             if (currentlyExecutableChildren.Count == 0)
             {
                 Task<bool> completedTask = await Task.WhenAny(tasks.Keys);
                 if (!completedTask.Result) return false; //TODO check if this works
-                BTDecorator decoratorCalled = tasks[completedTask];
+                AbstractDecorator decoratorCalled = tasks[completedTask];
                 Reevaluate();
             }
 
@@ -134,7 +134,7 @@ namespace BehaviorTree
     }
     public class Sequence : BTControlNode
     {
-        public Sequence(BehaviorTree tree, List<BTNode>? children = null, BTDecorator? decorator = null) : base(tree, decorator, children) {}
+        public Sequence(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
         protected override async Task<bool> ExecuteImplementation()
         {
             if (currentlyExecutableChildren.Count == 0)
@@ -145,7 +145,7 @@ namespace BehaviorTree
                 }
                 Task<bool> completedTask = await Task.WhenAny(tasks.Keys);
                 if (completedTask.Status == TaskStatus.Canceled) return false; //TODO check if this works
-                BTDecorator decorator = tasks[completedTask];
+                AbstractDecorator decorator = tasks[completedTask];
                 //tasks.Remove(completedTask);
                 Reevaluate();
             }
@@ -162,7 +162,7 @@ namespace BehaviorTree
     {
         BTListener? isExecutedListener;
         protected TTree Tree { get; private set; }
-        protected BTTask(TTree tree, BTListener? listener = null) : base(tree) 
+        protected BTTask(TTree tree, BTListener? listener = null) : base(tree)
         {
             Tree = tree;
             isExecutedListener = listener;

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BehaviorTree
+namespace BehaviorTrees
 {
     public abstract class BTListener : INotifiable
     {
-        private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
+        private TaskCompletionSource<bool> _tcs = new();
         public BehaviorTree Tree { get; private set; }
         public INotifiable Notifies { get; private set; }
         protected BTListener(BehaviorTree tree, INotifiable notifies)

@@ -22,7 +22,7 @@ namespace BehaviorTreeWrapper
 
         static BehaviorTreeMissionLogic _instance;
         Dictionary<SubscriptionPossibilities, List<BannerlordBTListener>> actions = new();
-        public Dictionary<int, BasicTree> trees = new();
+        public Dictionary<int, MovementTree> trees = new();
         float mainTime;
         float giveTreesTime;
         public override MissionBehaviorType BehaviorType => MissionBehaviorType.Other;
@@ -80,14 +80,15 @@ namespace BehaviorTreeWrapper
             {
                 giveTreesTime += dt;
             }
-            //actions.TryGetValue(SubscriptionPossibilities.OnAgentAlarmedStateChanged, out var listeners);
-            //if (listeners == null) return;
-            //if (mainTime < 2) { mainTime += dt; return; }
-            //foreach (var listener in listeners)
-            //{
-            //    listener.Signal();
-            //}
-            //mainTime = 0;
+            if (mainTime < 2) { mainTime += dt; return; }
+            actions.TryGetValue(SubscriptionPossibilities.OnAgentAlarmedStateChanged, out var listeners);
+            List<BannerlordBTListener> listToIterate = listeners.ToList(); ;
+            if (listToIterate == null) return;
+            foreach (var listener in listToIterate)
+            {
+                listener.Notify(new());
+            }
+            mainTime = 0;
         }
         private BannerlordBTListener? FindCalledListener(Agent agent, SubscriptionPossibilities action)
         {

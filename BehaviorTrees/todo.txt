@@ -1,8 +1,8 @@
 ﻿TO DO
-- give variables to descriptors for Evaluation
 - refactor the tree to be an AgentComponent instead of an outside object if possible
 - refactor how the tree is built, to make it easier to understand
 - create a couple trees
+- fix the crash that happens when you exit the scene
 
 CLEANUP
 - clear all the commited code from tests

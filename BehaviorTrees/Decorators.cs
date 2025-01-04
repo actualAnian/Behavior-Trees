@@ -1,19 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
-namespace BehaviorTree
+namespace BehaviorTrees
 {
-    public abstract class BTDecorator : INotifiable
+    public abstract class AbstractDecorator : INotifiable
     {
-        public BehaviorTree Tree;
         protected BTListener listener;
         public CancellationTokenSource CancellationTokenSource { get; }
-        //BehaviorTree INotifiable.NotifiedTree { get { return Tree; } }
 
-        protected BTDecorator(BehaviorTree tree)
+        protected internal AbstractDecorator()
         {
             CancellationTokenSource = new();
-            Tree = tree;
         }
         abstract public void Update();
         abstract public bool Evaluate();
@@ -29,6 +26,14 @@ namespace BehaviorTree
 
         public virtual void Notify(List<object> data)
         {
+        }
+    }
+    public abstract class BTDecorator<TTree> : AbstractDecorator where TTree : BehaviorTree
+    {
+        public TTree Tree;
+        public BTDecorator(TTree tree)
+        {
+            Tree = tree;
         }
     }
 }

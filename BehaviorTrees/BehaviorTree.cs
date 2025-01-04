@@ -1,9 +1,10 @@
-﻿using System;
+﻿using BehaviorTrees;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BehaviorTree
+namespace BehaviorTrees
 {
     public abstract class BehaviorTree : IDisposable
     {

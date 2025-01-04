@@ -1,5 +1,6 @@
-﻿using BehaviorTree;
+﻿using BehaviorTrees;
 using System.Collections.Generic;
+using TaleWorlds.Library;
 using static TaleWorlds.MountAndBlade.Agent;
 
 namespace BehaviorTreeWrapper
@@ -7,7 +8,7 @@ namespace BehaviorTreeWrapper
     public class BannerlordBTListener : BTListener
     {
         public SubscriptionPossibilities SubscribesTo { get; set; }
-        public BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree.BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
+        public BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
         {
             SubscribesTo = subscribesTo;
             Subscribe();
@@ -50,9 +51,9 @@ namespace BehaviorTreeWrapper
     //        Decorator.Evaluate();
     //    }
     //}
-    public abstract class BannerlordDecorator : BTDecorator
+    public abstract class BannerlordDecorator<TTree> : BTDecorator<TTree> where TTree : BehaviorTrees.BehaviorTree
     {
-        protected BannerlordDecorator(BehaviorTree.BehaviorTree tree, SubscriptionPossibilities subscribesTo) : base(tree)
+        protected BannerlordDecorator(TTree tree, SubscriptionPossibilities subscribesTo) : base(tree)
         {
             listener = new BannerlordBTListener(subscribesTo, tree, this);
         }
@@ -60,17 +61,15 @@ namespace BehaviorTreeWrapper
         {
         }
     }
-    public class AlarmedDecorator : BannerlordDecorator
+    public class AlarmedDecorator : BannerlordDecorator<BannerlordTree>
     {
-        BasicTree tree;
         private bool alreadyAlarmed = false;
-        public AlarmedDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        public AlarmedDecorator(BannerlordTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
         {
-            this.tree = tree;
         }
         public override bool Evaluate()
         {
-            if ((tree.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
+            if ((Tree.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
             {
                 alreadyAlarmed = true;
                 return true;
@@ -83,14 +82,10 @@ namespace BehaviorTreeWrapper
         }
     }
 
-    public class HitDecorator : BannerlordDecorator
+    public class HitDecorator : BannerlordDecorator<BannerlordTree>
     {
-        BasicTree tree;
         private bool hasBeenHit = false;
-        public HitDecorator(BasicTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
-        {
-            this.tree = tree;
-        }
+        public HitDecorator(MovementTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo) {}
         public override bool Evaluate()
         {
             if (!hasBeenHit) return false;
@@ -101,5 +96,18 @@ namespace BehaviorTreeWrapper
         {
             hasBeenHit = true;
         }
+    }
+    public class InPositionDecorator : BannerlordDecorator<MovementTree>
+    {
+        private Vec3 position;
+        public InPositionDecorator(MovementTree tree, Vec3 position, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        {
+            this.position = position;
+        }
+        public override bool Evaluate()
+        {
+            return Tree.Agent.Position.Distance(position) < 2;
+        }
+        public override void Notify(List<object> data) {}
     }
 }

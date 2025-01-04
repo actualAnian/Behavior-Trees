@@ -1,7 +1,15 @@
-﻿using BehaviorTree;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TaleWorlds.Core;
+using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.MountAndBlade;
+using SandBox.Conversation.MissionLogics;
+using SandBox.Objects.AnimationPoints;
+using SandBox.Objects.AreaMarkers;
+using SandBox.Objects.Usables;
+using SandBox;
+using TaleWorlds.Engine;
+using BehaviorTrees;
 
 namespace BehaviorTreeWrapper
 {
@@ -35,13 +43,26 @@ namespace BehaviorTreeWrapper
             return true;
         }
     }
-    public class MoveToPlaceTask : BTTask<BannerlordTree>
+    public class MoveToPlaceTask : BTTask<MovementTree>
     {
-        public MoveToPlaceTask(BannerlordTree tree) : base(tree) { }
+        Vec3 moveTo;
+        public MoveToPlaceTask(MovementTree tree, Vec3 moveTo) : base(tree) { this.moveTo = moveTo; }
 
         public override async Task<bool> Execute()
         {
-            MBInformationManager.AddQuickInformation(new TextObject("Second message!", null), 0, null, "");
+            WorldPosition position = new WorldPosition(Mission.Current.Scene, moveTo);
+            Tree.Navigator.SetTargetFrame(position, Tree.Agent.Frame.rotation.f.AsVec2.RotationInRadians);
+            MBInformationManager.AddQuickInformation(new TextObject("moving", null), 0, null, "");
+            return true;
+        }
+    }
+    public class ClearMovementTask : BTTask<MovementTree>
+    {
+        public ClearMovementTask(MovementTree tree) : base(tree) { }
+
+        public override async Task<bool> Execute()
+        {
+            Tree.Navigator.ClearTarget();
             return true;
         }
     }
