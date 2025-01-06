@@ -40,12 +40,29 @@ namespace BehaviorTreeWrapper
              *     printTask      MoveTo   ClearNavigator
              */
 
-            Vec3 position = new(373, 295, 20);
-            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new AlarmedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
-            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new MoveToPlaceTask(tree, position), new PrintTask3(tree) }, new HitDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
-            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new ClearMovementTask(tree) }, new InPositionDecorator(tree, position, SubscriptionPossibilities.OnMissionTick)));
+            //Vec3 position = new(373, 295, 20);
+            //rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new AlarmedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
+            //rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new MoveToPlaceTask(tree, position), new PrintTask3(tree) }, new HitDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
+            //rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new ClearMovementTask(tree) }, new InPositionDecorator(tree, position, SubscriptionPossibilities.OnMissionTick)));
 
             //tree.BuildTree(rootNode, listener);
+
+            /* whyyy
+             
+                          root
+             *            sequence
+             *   (spotted)             (hit)             //    (Moved)
+             *  printTask    printTask MoveTo (hit)      // ClearNavigator
+                                          ClearNavigator
+
+
+            */
+            Vec3 position = new(373, 295, 20);
+            Sequence secondNode = new Sequence(tree, new List<BTNode> { new ClearMovementTask(tree) }, new HitDecorator(tree, SubscriptionPossibilities.OnAgentHit));
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree) }, new AlarmedDecorator(tree, SubscriptionPossibilities.OnAgentAlarmedStateChanged)));
+            rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new PrintTask(tree), new MoveToPlaceTask(tree, position) }, new HitDecorator(tree, SubscriptionPossibilities.OnAgentHit)));
+            //rootNode.BuildNode(new Sequence(tree, new List<BTNode> { new ClearMovementTask(tree) }, new InPositionDecorator(tree, position, SubscriptionPossibilities.OnMissionTick)));
+
             tree.BuildTree(rootNode);
             return tree;
         }

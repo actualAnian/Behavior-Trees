@@ -139,10 +139,6 @@ namespace BehaviorTrees
         {
             if (currentlyExecutableChildren.Count == 0)
             {
-                if (tasks.Count == 0)
-                {
-                    var a = 5;
-                }
                 Task<bool> completedTask = await Task.WhenAny(tasks.Keys);
                 if (completedTask.Status == TaskStatus.Canceled) return false; //TODO check if this works
                 AbstractDecorator decorator = tasks[completedTask];

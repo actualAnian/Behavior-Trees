@@ -14,7 +14,10 @@ namespace BehaviorTrees
             Tree = tree;
         }
 
-        public abstract void Subscribe();
+        public virtual void Subscribe() //@TODO make this obligatory
+        {
+            _tcs = new();
+        }
         public abstract void UnSubscribe();
         public abstract void Notify(List<object> data);
         public void Signal(bool success)
@@ -23,7 +26,7 @@ namespace BehaviorTrees
                 _tcs.TrySetResult(true);
             else
                 _tcs.TrySetCanceled();
-            _tcs = new TaskCompletionSource<bool>();
+            //_tcs = new TaskCompletionSource<bool>();
         }
         public Task<bool> NotifyAsync()
         {

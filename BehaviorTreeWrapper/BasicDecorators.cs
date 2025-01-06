@@ -11,10 +11,11 @@ namespace BehaviorTreeWrapper
         public BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
         {
             SubscribesTo = subscribesTo;
-            Subscribe();
+            //Subscribe();
         }
         public override void Subscribe()
         {
+            base.Subscribe();
             BehaviorTreeBannerlordWrapper.Instance.Subscribe(this);
         }
         public override void UnSubscribe()

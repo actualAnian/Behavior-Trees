@@ -72,6 +72,7 @@ namespace BehaviorTreeWrapper
             {
                 foreach (var agent in Mission.Agents)
                 {
+                    if (agent == Agent.Main) continue; 
                     agent.AddBehaviorTree();
                 }
                 Globals.IsMissionInitialized = true;
@@ -81,9 +82,10 @@ namespace BehaviorTreeWrapper
                 giveTreesTime += dt;
             }
             if (mainTime < 2) { mainTime += dt; return; }
-            actions.TryGetValue(SubscriptionPossibilities.OnAgentAlarmedStateChanged, out var listeners);
-            List<BannerlordBTListener> listToIterate = listeners.ToList(); ;
-            if (listToIterate == null) return;
+            actions.TryGetValue(SubscriptionPossibilities.OnMissionTick, out var listeners);
+            if (listeners == null) return;
+            List<BannerlordBTListener> listToIterate = listeners.ToList();
+            
             foreach (var listener in listToIterate)
             {
                 listener.Notify(new());
