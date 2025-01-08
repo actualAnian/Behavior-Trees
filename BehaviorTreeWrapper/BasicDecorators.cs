@@ -11,7 +11,6 @@ namespace BehaviorTreeWrapper
         public BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
         {
             SubscribesTo = subscribesTo;
-            //Subscribe();
         }
         public override void Subscribe()
         {
@@ -22,7 +21,6 @@ namespace BehaviorTreeWrapper
         {
             BehaviorTreeBannerlordWrapper.Instance.UnSubscribe(this);
         }
-
         public override void Notify(List<object> data)
         {
             Notifies.Notify(data);
@@ -52,22 +50,17 @@ namespace BehaviorTreeWrapper
     //        Decorator.Evaluate();
     //    }
     //}
-    public abstract class BannerlordDecorator<TTree> : BTDecorator<TTree> where TTree : BehaviorTrees.BehaviorTree
+    public abstract class BannerlordDecorator<TTree> : BTDecorator<TTree> where TTree : BehaviorTree
     {
         protected BannerlordDecorator(TTree tree, SubscriptionPossibilities subscribesTo) : base(tree)
         {
             listener = new BannerlordBTListener(subscribesTo, tree, this);
         }
-        public override void Update()
-        {
-        }
     }
     public class AlarmedDecorator : BannerlordDecorator<BannerlordTree>
     {
         private bool alreadyAlarmed = false;
-        public AlarmedDecorator(BannerlordTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
-        {
-        }
+        public AlarmedDecorator(BannerlordTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo) { }
         public override bool Evaluate()
         {
             if ((Tree.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)

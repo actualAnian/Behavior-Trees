@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,7 +55,7 @@ namespace BehaviorTrees
 
         public bool Evaluate()
         {
-            return decorator == null ? true : decorator.Evaluate();
+            return decorator == null || decorator.Evaluate();
         }
 
         public BTControlNode BuildNode(BTNode nextNode)
@@ -68,7 +69,7 @@ namespace BehaviorTrees
             currentlyExecutableChildren = new(taskChildren);
             foreach (BTControlNode chi in controlChildren)
             {
-                if (chi.Evaluate())
+                if (chi.Evaluate())  
                     currentlyExecutableChildren.Add(chi);
             }
         }

@@ -52,7 +52,6 @@ namespace BehaviorTreeWrapper
         {
             WorldPosition position = new WorldPosition(Mission.Current.Scene, moveTo);
             Tree.Navigator.SetTargetFrame(position, Tree.Agent.Frame.rotation.f.AsVec2.RotationInRadians);
-            MBInformationManager.AddQuickInformation(new TextObject("moving", null), 0, null, "");
             return true;
         }
     }

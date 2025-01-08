@@ -11,7 +11,7 @@ namespace BehaviorTreeWrapper
         OnMissionTick,
         OnAgentAlarmedStateChanged,
         OnAgentHit
-    }
+    } // more to be added
 
     public class BehaviorTreeMissionLogic : MissionBehavior
     {
@@ -52,11 +52,6 @@ namespace BehaviorTreeWrapper
             Globals.IsMissionInitialized = false;
             BehaviorTreeBannerlordWrapper.Instance.CurrentMission = this;
         }
-        //public override void OnAgentCreated(Agent agent)
-        //{
-        //    base.OnAgentCreated(agent);
-        //    agent.AddBehaviorTree();
-        //}
         public override void AfterStart()
         {
             giveTreesTime = 0;
@@ -85,38 +80,37 @@ namespace BehaviorTreeWrapper
             actions.TryGetValue(SubscriptionPossibilities.OnMissionTick, out var listeners);
             if (listeners == null) return;
             List<BannerlordBTListener> listToIterate = listeners.ToList();
-            
-            foreach (var listener in listToIterate)
-            {
-                listener.Notify(new());
-            }
+
+            List<object> toSend = new() { dt };
+            listeners.ForEach(listener => { listener.Notify(toSend); });
             mainTime = 0;
         }
-        private BannerlordBTListener? FindCalledListener(Agent agent, SubscriptionPossibilities action)
+        private List<BannerlordBTListener> FindCalledListeners(Agent agent, SubscriptionPossibilities action)
         {
+            List<BannerlordBTListener> toReturn = new();
             actions.TryGetValue(action, out var listeners);
-            if (listeners == null) return null;
+            if (listeners == null) return toReturn;
             foreach (var listener in listeners)
                 if (agent.GetBehaviorTree() == listener.Tree)
-                    return listener;
-            return null;
+                    toReturn.Add(listener);
+            return toReturn;
         }
 
         public override void OnAgentAlarmedStateChanged(Agent agent, Agent.AIStateFlag flag)
         {
-            BannerlordBTListener? listener = FindCalledListener(agent, SubscriptionPossibilities.OnAgentAlarmedStateChanged);
-            if (listener == null) return;
+            List<BannerlordBTListener> listeners = FindCalledListeners(agent, SubscriptionPossibilities.OnAgentAlarmedStateChanged);
+            if (listeners == null) return;
 
             List<object> toSend = new() { flag };
-            listener.Notify(toSend);
+            listeners.ForEach(listener => { listener.Notify(toSend); });
         }
         public override void OnAgentHit(Agent affectedAgent, Agent affectorAgent, in MissionWeapon affectorWeapon, in Blow blow, in AttackCollisionData attackCollisionData)
         {
-            BannerlordBTListener? listener = FindCalledListener(affectedAgent, SubscriptionPossibilities.OnAgentHit);
-            if (listener == null) return;
+            List<BannerlordBTListener> listeners = FindCalledListeners(affectedAgent, SubscriptionPossibilities.OnAgentHit);
+            if (listeners == null) return;
 
             List<object> toSend = new() { affectorAgent, affectorWeapon, blow, attackCollisionData };
-            listener.Notify(toSend);
+            listeners.ForEach(listener => { listener.Notify(toSend); });
         }
         public override void OnEndMissionInternal()
         {

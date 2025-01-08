@@ -8,7 +8,6 @@ namespace BehaviorTrees
 {
     public abstract class BehaviorTree : IDisposable
     {
-
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
 

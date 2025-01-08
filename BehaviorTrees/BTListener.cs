@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace BehaviorTrees
 {
-    public abstract class BTListener : INotifiable
+    public abstract class BTListener
     {
         private TaskCompletionSource<bool> _tcs = new();
         public BehaviorTree Tree { get; private set; }

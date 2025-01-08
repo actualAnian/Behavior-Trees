@@ -3,6 +3,11 @@ using System.Threading;
 
 namespace BehaviorTrees
 {
+    public enum OnDecoratorFalse
+    {
+        ReturnFalse,
+        AwaitEvent
+    }
     public abstract class AbstractDecorator : INotifiable
     {
         protected BTListener listener;
@@ -12,7 +17,7 @@ namespace BehaviorTrees
         {
             CancellationTokenSource = new();
         }
-        abstract public void Update();
+        //abstract public void Update();
         abstract public bool Evaluate();
         public BTListener Add()
         {

@@ -2,8 +2,8 @@
 - refactor the tree to be an AgentComponent instead of an outside object if possible
 - refactor how the tree is built, to make it easier to understand
 - create a couple trees
-- fix the crash that happens when you exit the scene
-
+- fix the crash that happens when you exit the scenes (happens when game is adding the trees while you exit it)
+- add more decorator nodes (differenciate between exit when false, wait for event when false)
 CLEANUP
 - clear all the commited code from tests
 - refactor notification for descriptors and listeners
