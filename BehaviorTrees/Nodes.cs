@@ -8,127 +8,174 @@ namespace BehaviorTrees
 {
     public abstract class BTNode
     {
-        internal BehaviorTree tree;
-        public virtual AbstractDecorator decorator
+        protected BehaviorTree BaseTree { get; set; }
+        public virtual AbstractDecorator? Decorator
         {
             get
             {
                 return null;
             }
         }
-        protected BTNode(BehaviorTree tree)
+        protected BTNode() { }
+        public virtual async Task<bool> Execute(CancellationToken cancellationToken) { return true; }
+        public Task<bool>? AddDecoratorsListeners(CancellationToken cancellationToken)
         {
-            this.tree = tree;
+            return Decorator?.AddListener(cancellationToken);
         }
-        public virtual async Task<bool> Execute() { return true; }
-        //public void Update()
-        //{
-        //    decorator?.Update();
-        //}
-        //public abstract void UpdateTreeProperty();
-
     }
     public abstract class BTControlNode : BTNode
     {
-        public List<BTNode> taskChildren = new();
-        public List<BTControlNode> controlChildren = new();
+        protected int alreadyExecutedNodes = 0;
+        public List<BTNode> allChildren;
         public List<BTNode> currentlyExecutableChildren = new();
-        private AbstractDecorator? _decorator;
-        public override AbstractDecorator decorator { get { return _decorator; } }
-        public List<BTListener> Listeners { get; private set; }
-        protected Dictionary<Task<bool>, AbstractDecorator> tasks = new Dictionary<Task<bool>, AbstractDecorator>();
-        public Task<bool> AddDecoratorsListeners()
-        {
-            BTListener newListener = decorator.Add();
-            return newListener.NotifyAsync();
-        }
-        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null) : base(tree)
-        {
-            _decorator = decorator;
-            if (children == null)
-            {
-                taskChildren = new List<BTNode>();
-                controlChildren = new List<BTControlNode>();
-            }
-            else taskChildren = children;
-        }
+        public List<BTNode> childrenWaiting = new();
+        public List<BTNode> childrenWithTasks = new();
 
+        private readonly AbstractDecorator? _decorator;
+        public override AbstractDecorator? Decorator => _decorator;
+        public List<BTListener> Listeners { get; private set; }
+        protected List<Task<bool>> tasks = new();
+        protected List<AbstractDecorator> decorators = new();
+        
+        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null) : base()
+        {
+            BaseTree = tree;
+            _decorator = decorator;
+            allChildren = children ?? new();
+        }
         public bool Evaluate()
         {
-            return decorator == null || decorator.Evaluate();
+            return Decorator == null || Decorator.Evaluate();
         }
-
+        internal void AddChild(BTNode child)
+        {
+            allChildren.Add(child);
+        }
         public BTControlNode BuildNode(BTNode nextNode)
         {
-            if (nextNode is BTControlNode controlNode) controlChildren.Add(controlNode);
-            else taskChildren.Add(nextNode);
+            allChildren.Add(nextNode);
             return this;
         }
-        public void Reevaluate() //@TODO put them in order
+        Task<bool> _cancellationTask;
+        protected Task<bool> GetCancellationTask(CancellationToken cancellationToken)
         {
-            currentlyExecutableChildren = new(taskChildren);
-            foreach (BTControlNode chi in controlChildren)
+            _cancellationTask ??= Task.Run(() =>
             {
-                if (chi.Evaluate())  
-                    currentlyExecutableChildren.Add(chi);
+                cancellationToken.WaitHandle.WaitOne();
+                return false;
+            });
+            return _cancellationTask;
+        }
+        protected void AddTasks(CancellationToken cancellationToken)
+        {
+            foreach (BTNode chi in childrenWithTasks)
+            {
+                if (chi.Decorator == null) continue;
+                tasks.Add(chi.AddDecoratorsListeners(cancellationToken));
+                decorators.Add(chi.Decorator);
             }
         }
-        public override sealed async Task<bool> Execute()
+        public override sealed async Task<bool> Execute(CancellationToken cancellationToken)
         {
-            tree.CurrentControlNode = this;
-            Reevaluate();
-            foreach (BTControlNode chi in controlChildren)
-            {
-                if (chi.decorator == null) continue;
-                tasks[chi.AddDecoratorsListeners()] = chi.decorator;
-            }
-            bool result = await ExecuteImplementation();
+            alreadyExecutedNodes = 0;
+            BaseTree.CurrentControlNode = this;
+            //Reevaluate();
+            //foreach (BTControlNode chi in controlChildren)
+            //{
+            //    if (chi.decorator == null) continue;
+            //    tasks[chi.AddDecoratorsListeners()] = chi.decorator;
+            //}
+            bool result = await ExecuteImplementation(cancellationToken);
             RemoveDecorators();
             tasks = new();
+            decorators = new();
+            childrenWithTasks.Clear();
+            currentlyExecutableChildren.Clear();
+            childrenWaiting.Clear();
             return result;
         }
-        protected abstract Task<bool> ExecuteImplementation();
-        private void AfterExecute()
+        protected abstract Task<bool> ExecuteImplementation(CancellationToken cancellationToken);
+        protected void RemoveDecorator(AbstractDecorator decorator)
         {
-            RemoveDecorators();
+            decorator.Remove();
         }
-        public void RemoveDecorators()
+        internal void RemoveDecorators()
         {
-            foreach (BTControlNode chi in controlChildren)
-            {
-                chi.decorator?.Remove();
-            }
+            childrenWithTasks.ForEach(child => { if (child.Decorator != null) RemoveDecorator(child.Decorator); });
         }
         public void ClearTasks()
         {
-            foreach (KeyValuePair<Task<bool>, AbstractDecorator> taskPair in tasks)
-            {
-                taskPair.Value.CancellationTokenSource.Cancel();
-                taskPair.Value.CancellationTokenSource.Dispose();
-            }
+            //for(int i = 0; i < tasks.Count; i++)
+            //{
+            //    decorators[i].CancellationTokenSource.Cancel();
+            //    decorators[i].CancellationTokenSource.Dispose();
+            //}
+            decorators.Clear();
             tasks.Clear();
+        }
+        protected bool ExecutedAll()
+        {
+            return alreadyExecutedNodes >= allChildren.Count;
         }
     }
     public class Selector : BTControlNode
     {
         public Selector(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
-        protected override async Task<bool> ExecuteImplementation()
+        protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
         {
-            await Execute();
-            bool shouldStop = true;
-            if (currentlyExecutableChildren.Count == 0)
+            foreach (BTNode child in allChildren)
             {
-                Task<bool> completedTask = await Task.WhenAny(tasks.Keys);
-                if (!completedTask.Result) return false; //TODO check if this works
-                AbstractDecorator decoratorCalled = tasks[completedTask];
-                Reevaluate();
+                if (child.Decorator == null) currentlyExecutableChildren.Add(child);
+                else
+                {
+                    if (child.Decorator.Evaluate()) currentlyExecutableChildren.Add(child);
+                    else if (child.Decorator.OnDecoratorFalse == OnDecoratorFalse.AwaitEvent) childrenWithTasks.Add(child); 
+                }
             }
-
+            bool shouldStop = false;
             foreach (var child in currentlyExecutableChildren)
             {
-                if (child.decorator != null && child.decorator.Evaluate() == false) continue;
-                shouldStop = await child.Execute();
+                shouldStop = await child.Execute(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (shouldStop) return true;
+                alreadyExecutedNodes += 1;
+            }
+            if (childrenWithTasks.Count == 0) return false;
+            AddTasks(cancellationToken);
+            while (!ExecutedAll())
+            {
+                currentlyExecutableChildren = new();
+                if (childrenWithTasks.Count > 0)
+                {
+                    List<AbstractDecorator> decoratorsList = new(decorators);
+                    List<Task<bool>> tasksList = new(tasks)
+                    {
+                        GetCancellationTask(cancellationToken)
+                    };
+                    Task<bool> completedTask = await Task.WhenAny(tasksList);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int completedIndex = tasks.IndexOf(completedTask);
+                    if (!completedTask.Result) return false;
+                    AbstractDecorator decoratorCalled = decoratorsList[completedIndex];
+                    BTNode child = decoratorCalled.NodeBeingDecoracted;
+                    if (decoratorCalled.Evaluate())
+                    {
+                        shouldStop = await child.Execute(cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+                    } 
+                    else
+                    {
+                        lock (tasks)
+                        {
+                            tasks.RemoveAt(completedIndex);
+                            RemoveDecorator(decoratorCalled);
+                            decorators.RemoveAt(completedIndex);
+                            tasks.Add(child.AddDecoratorsListeners(cancellationToken));
+                            decorators.Add(child.Decorator);
+                        }
+                    }
+                    if (shouldStop) return true;
+                }
             }
             return false;
         }
@@ -136,21 +183,31 @@ namespace BehaviorTrees
     public class Sequence : BTControlNode
     {
         public Sequence(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
-        protected override async Task<bool> ExecuteImplementation()
+        protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
         {
-            if (currentlyExecutableChildren.Count == 0)
-            {
-                Task<bool> completedTask = await Task.WhenAny(tasks.Keys);
-                if (completedTask.Status == TaskStatus.Canceled) return false; //TODO check if this works
-                AbstractDecorator decorator = tasks[completedTask];
-                //tasks.Remove(completedTask);
-                Reevaluate();
-            }
             bool shouldContinue = true;
-            foreach (var child in currentlyExecutableChildren)
+            foreach (BTNode child in allChildren)
             {
-                shouldContinue = await child.Execute();
-                if (!shouldContinue) return false;
+                if (child.Decorator == null)
+                {
+                    shouldContinue = await child.Execute(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!shouldContinue) return false;
+                }
+                else
+                {
+                    bool evaluate = child.Decorator.Evaluate();
+                    if (!evaluate && child.Decorator.OnDecoratorFalse == OnDecoratorFalse.ReturnFalse) return false;
+                    while (!evaluate && child.Decorator.OnDecoratorFalse == OnDecoratorFalse.AwaitEvent)
+                    {
+                        await child.AddDecoratorsListeners(cancellationToken);
+                        evaluate = child.Decorator.Evaluate();
+                    }
+
+                    shouldContinue = await child.Execute(cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!shouldContinue) return false;
+                }
             }
             return true;
         }
@@ -158,14 +215,22 @@ namespace BehaviorTrees
     public abstract class BTTask<TTree> : BTNode where TTree : BehaviorTree
     {
         BTListener? isExecutedListener;
-        protected TTree Tree { get; private set; }
-        protected BTTask(TTree tree, BTListener? listener = null) : base(tree)
+        private TTree _tree;
+        public TTree Tree 
         {
-            Tree = tree;
+            get { return _tree; }
+            set 
+            {
+                _tree = value;
+                BaseTree = _tree;
+            }
+        }
+        protected BTTask(BTListener? listener = null) : base()
+        {
             isExecutedListener = listener;
         }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             return true;
         }

@@ -5,8 +5,17 @@ namespace BehaviorTreeWrapper
 {
     public class BehaviorTreeBannerlordWrapper : IDisposable
     {
-        public BehaviorTreeMissionLogic CurrentMission { get;  set; }
-        static BehaviorTreeBannerlordWrapper _instance;
+        private BehaviorTreeMissionLogic? _missionLogic;
+        public BehaviorTreeMissionLogic CurrentMissionLogic
+        {
+            get => _missionLogic;
+            set
+            {
+                _missionLogic = value;
+                _disposed = false;
+            }
+        }
+        static BehaviorTreeBannerlordWrapper? _instance;
         private bool _disposed = false;
         public static BehaviorTreeBannerlordWrapper Instance
         {
@@ -19,25 +28,22 @@ namespace BehaviorTreeWrapper
         }
         public void Subscribe(BannerlordBTListener listener)
         {
-            CurrentMission.Subscribe(listener);
+            CurrentMissionLogic?.Subscribe(listener);
         }
         public void UnSubscribe(BannerlordBTListener listener)
         {
-            CurrentMission.UnSubscribe(listener);
+            CurrentMissionLogic?.UnSubscribe(listener);
         }
 
         public void Dispose()
         {
             if (!_disposed)//true)//!_disposed)
             {
-                foreach (MovementTree tree in CurrentMission.trees.Values)
+                foreach (BannerlordTree tree in CurrentMissionLogic.trees.Values)
                 {
                     tree.Dispose();
-                    tree.RetireTree();
                 }
-                //foreach (BannerlordBTListener listener in CurrentMission.GetAllListeners())
-                //    listener.NotifyWithCancel();
-                CurrentMission = null;
+                CurrentMissionLogic = null;
                 _disposed = true;
             }
         }

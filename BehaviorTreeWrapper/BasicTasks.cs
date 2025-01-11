@@ -10,14 +10,15 @@ using SandBox.Objects.Usables;
 using SandBox;
 using TaleWorlds.Engine;
 using BehaviorTrees;
+using System.Threading;
 
 namespace BehaviorTreeWrapper
 {
     public class PrintTask : BTTask<BannerlordTree>
     {
-        public PrintTask(BannerlordTree tree) : base(tree) { }
+        public PrintTask() { }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             MBInformationManager.AddQuickInformation(new TextObject("I spotted you!", null), 0, null, "");
             return true;
@@ -25,9 +26,9 @@ namespace BehaviorTreeWrapper
     }
     public class PrintTask2 : BTTask<BannerlordTree>
     {
-        public PrintTask2(BannerlordTree tree) : base(tree) { }
+        public PrintTask2() : base() { }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             MBInformationManager.AddQuickInformation(new TextObject("I am hit!", null), 0, null, "");
             return true;
@@ -35,9 +36,9 @@ namespace BehaviorTreeWrapper
     }
     public class PrintTask3 : BTTask<BannerlordTree>
     {
-        public PrintTask3(BannerlordTree tree) : base(tree) { }
+        public PrintTask3() : base() { }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             MBInformationManager.AddQuickInformation(new TextObject("Second message!", null), 0, null, "");
             return true;
@@ -46,9 +47,9 @@ namespace BehaviorTreeWrapper
     public class MoveToPlaceTask : BTTask<MovementTree>
     {
         Vec3 moveTo;
-        public MoveToPlaceTask(MovementTree tree, Vec3 moveTo) : base(tree) { this.moveTo = moveTo; }
+        public MoveToPlaceTask(Vec3 moveTo) : base() { this.moveTo = moveTo; }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             WorldPosition position = new WorldPosition(Mission.Current.Scene, moveTo);
             Tree.Navigator.SetTargetFrame(position, Tree.Agent.Frame.rotation.f.AsVec2.RotationInRadians);
@@ -57,9 +58,9 @@ namespace BehaviorTreeWrapper
     }
     public class ClearMovementTask : BTTask<MovementTree>
     {
-        public ClearMovementTask(MovementTree tree) : base(tree) { }
+        public ClearMovementTask() : base() { }
 
-        public override async Task<bool> Execute()
+        public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
             Tree.Navigator.ClearTarget();
             return true;

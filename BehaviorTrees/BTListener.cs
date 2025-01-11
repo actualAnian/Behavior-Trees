@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BehaviorTrees
@@ -6,6 +7,7 @@ namespace BehaviorTrees
     public abstract class BTListener
     {
         private TaskCompletionSource<bool> _tcs = new();
+        public Task<bool> Task => _tcs.Task;
         public BehaviorTree Tree { get; private set; }
         public INotifiable Notifies { get; private set; }
         protected BTListener(BehaviorTree tree, INotifiable notifies)
@@ -14,8 +16,15 @@ namespace BehaviorTrees
             Tree = tree;
         }
 
-        public virtual void Subscribe() //@TODO make this obligatory
+        public virtual void Subscribe(CancellationToken cancellationToken)
         {
+            cancellationToken.Register(() =>
+            {
+                if (_tcs != null && !_tcs.Task.IsCompleted)
+                {
+                    _tcs.SetCanceled();
+                }
+            });
             _tcs = new();
         }
         public abstract void UnSubscribe();

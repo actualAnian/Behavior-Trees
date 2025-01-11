@@ -1,46 +1,47 @@
 ﻿using BehaviorTrees;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BehaviorTrees
 {
+    public interface IBTTask<out TaskTree>
+    {
+        void Execute();
+    }
     public abstract class BehaviorTree : IDisposable
     {
+
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
 
         public List<BTListener> currentListeners;
         public BTControlNode CurrentControlNode { get; set; }
         public BTControlNode RootNode { get; set; }
-
-        public BehaviorTree NotifiedTree { get { return this; } }
-
         public BehaviorTree()
-        {
+        { 
         }
-        public BehaviorTree BuildTree(BTControlNode rootNode, BTListener listener)
+        public void StartTree()
         {
-            CurrentControlNode = RootNode = rootNode;
+            CurrentControlNode = RootNode;
             _cancellationTokenSource = new CancellationTokenSource();
             ExecuteNode(_cancellationTokenSource.Token);
-            return this;
-        }
-        public BehaviorTree BuildTree(BTControlNode rootNode)
-        {
-            CurrentControlNode = RootNode = rootNode;
-            _cancellationTokenSource = new CancellationTokenSource();
-            ExecuteNode(_cancellationTokenSource.Token);
-            return this;
         }
         public async void ExecuteNode(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested) //@TODO check if this works
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await RootNode.Execute();
-                await Task.Delay(2000);
-                int a = 5;
+                try
+                {
+                    await RootNode.Execute(cancellationToken);
+                    await Task.Delay(2000);
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
             }
         }
         public void Dispose()
@@ -48,11 +49,16 @@ namespace BehaviorTrees
             if (!_disposed)
             {
                 _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource?.Dispose();
-                CurrentControlNode.ClearTasks();
-                CurrentControlNode.RemoveDecorators();
+                //CurrentControlNode.ClearTasks();
+                //CurrentControlNode.RemoveDecorators();
                 _disposed = true;
             }
+        }
+        public static BehaviorTreeBuilder<TTree> BuildTree<TTree>(TTree tree) where TTree : BehaviorTree
+        {
+            BehaviorTreeBuilder<TTree> newBuilder = new(tree);
+
+            return newBuilder;
         }
     }
 }

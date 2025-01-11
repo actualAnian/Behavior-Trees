@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BehaviorTrees
 {
@@ -11,34 +12,34 @@ namespace BehaviorTrees
     public abstract class AbstractDecorator : INotifiable
     {
         protected BTListener listener;
-        public CancellationTokenSource CancellationTokenSource { get; }
+        public BTNode NodeBeingDecoracted { get; internal set; }
+        //public CancellationTokenSource CancellationTokenSource { get; }
 
-        protected internal AbstractDecorator()
+        private readonly OnDecoratorFalse _onFalse;
+        protected internal AbstractDecorator(OnDecoratorFalse onFalse)
         {
-            CancellationTokenSource = new();
+            _onFalse = onFalse;
+            //CancellationTokenSource = new();
         }
-        //abstract public void Update();
         abstract public bool Evaluate();
-        public BTListener Add()
+        public Task<bool> AddListener(CancellationToken cancellationToken)
         {
-            listener.Subscribe();
-            return listener;
+            listener.Subscribe(cancellationToken);
+            return listener.Task;
         }
         public void Remove()
         {
             listener.UnSubscribe();
         }
-
-        public virtual void Notify(List<object> data)
-        {
-        }
+        public virtual void Notify(List<object> data) { }
+        internal OnDecoratorFalse OnDecoratorFalse => _onFalse;
     }
     public abstract class BTDecorator<TTree> : AbstractDecorator where TTree : BehaviorTree
     {
-        public TTree Tree;
-        public BTDecorator(TTree tree)
+        public TTree Tree { get; set; }
+        public BTDecorator(OnDecoratorFalse onFalse) : base(onFalse)
         {
-            Tree = tree;
         }
+        public abstract void CreateListener();
     }
 }

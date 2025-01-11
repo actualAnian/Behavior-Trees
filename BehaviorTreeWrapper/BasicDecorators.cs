@@ -1,5 +1,6 @@
 ﻿using BehaviorTrees;
 using System.Collections.Generic;
+using System.Threading;
 using TaleWorlds.Library;
 using static TaleWorlds.MountAndBlade.Agent;
 
@@ -12,9 +13,9 @@ namespace BehaviorTreeWrapper
         {
             SubscribesTo = subscribesTo;
         }
-        public override void Subscribe()
+        public override void Subscribe(CancellationToken cancellationToken)
         {
-            base.Subscribe();
+            base.Subscribe(cancellationToken);
             BehaviorTreeBannerlordWrapper.Instance.Subscribe(this);
         }
         public override void UnSubscribe()
@@ -52,15 +53,21 @@ namespace BehaviorTreeWrapper
     //}
     public abstract class BannerlordDecorator<TTree> : BTDecorator<TTree> where TTree : BehaviorTree
     {
-        protected BannerlordDecorator(TTree tree, SubscriptionPossibilities subscribesTo) : base(tree)
+        SubscriptionPossibilities subscribesTo;
+        protected BannerlordDecorator(SubscriptionPossibilities subscribesTo, OnDecoratorFalse onFalse) : base(onFalse)
         {
-            listener = new BannerlordBTListener(subscribesTo, tree, this);
+            this.subscribesTo = subscribesTo;
+        }
+        public override sealed void CreateListener()
+        {
+            listener = new BannerlordBTListener(subscribesTo, Tree, this);
         }
     }
     public class AlarmedDecorator : BannerlordDecorator<BannerlordTree>
     {
         private bool alreadyAlarmed = false;
-        public AlarmedDecorator(BannerlordTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo) { }
+        public AlarmedDecorator(SubscriptionPossibilities SubscribesTo) : base(SubscribesTo, OnDecoratorFalse.AwaitEvent) { }
+
         public override bool Evaluate()
         {
             if ((Tree.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
@@ -79,7 +86,7 @@ namespace BehaviorTreeWrapper
     public class HitDecorator : BannerlordDecorator<BannerlordTree>
     {
         private bool hasBeenHit = false;
-        public HitDecorator(MovementTree tree, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo) {}
+        public HitDecorator(SubscriptionPossibilities SubscribesTo) : base(SubscribesTo, OnDecoratorFalse.AwaitEvent) {}
         public override bool Evaluate()
         {
             if (!hasBeenHit) return false;
@@ -94,7 +101,7 @@ namespace BehaviorTreeWrapper
     public class InPositionDecorator : BannerlordDecorator<MovementTree>
     {
         private Vec3 position;
-        public InPositionDecorator(MovementTree tree, Vec3 position, SubscriptionPossibilities SubscribesTo) : base(tree, SubscribesTo)
+        public InPositionDecorator(Vec3 position, SubscriptionPossibilities SubscribesTo) : base(SubscribesTo, OnDecoratorFalse.AwaitEvent)
         {
             this.position = position;
         }

@@ -12,20 +12,20 @@ namespace BehaviorTreeWrapper
         public static void AddBehaviorTree(this Agent agent)
         {
             if (agent.Origin == null || agent.Origin is PartyAgentOrigin) return;
-            if (BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees.TryGetValue(agent.Origin.Seed, out var descriptors))
+            if (BehaviorTreeBannerlordWrapper.Instance.CurrentMissionLogic.trees.TryGetValue(agent.Origin.Seed, out var descriptors))
             {
                 throw new Exception("BehaviorTreeWrapper.Extensions.AddBehaviorTree error, key already exists");
             }
             NO++;
-            BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees[agent.Origin.Seed] = MovementTree.BuildBasicTree(agent);
+            BehaviorTreeBannerlordWrapper.Instance.CurrentMissionLogic.trees[agent.Origin.Seed] = MovementTree.BuildBasicTree(agent);
 //            BehaviorTreeMissionLogic.Instance.trees[agent] = new BasicTree(agent);
         }
 
-        public static MovementTree? GetBehaviorTree(this Agent agent)
+        public static BannerlordTree? GetBehaviorTree(this Agent agent)
         {
             if (agent.Origin == null) return null;
-            if (!BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees.ContainsKey(agent.Origin.Seed)) return null;
-            return BehaviorTreeBannerlordWrapper.Instance.CurrentMission.trees[agent.Origin.Seed];
+            if (!BehaviorTreeBannerlordWrapper.Instance.CurrentMissionLogic.trees.ContainsKey(agent.Origin.Seed)) return null;
+            return BehaviorTreeBannerlordWrapper.Instance.CurrentMissionLogic.trees[agent.Origin.Seed];
         }
     }
 }
