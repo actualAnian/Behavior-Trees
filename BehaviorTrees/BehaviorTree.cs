@@ -7,21 +7,18 @@ using System.Threading.Tasks;
 
 namespace BehaviorTrees
 {
-    public interface IBTTask<out TaskTree>
-    {
-        void Execute();
-    }
     public abstract class BehaviorTree : IDisposable
     {
 
         private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
+        private readonly int rootEvaluationDelay = 2000; // miliseconds
 
-        public List<BTListener> currentListeners;
         public BTControlNode CurrentControlNode { get; set; }
         public BTControlNode RootNode { get; set; }
-        public BehaviorTree()
-        { 
+        public BehaviorTree(int rootEvaluationDelay = 2000)
+        {
+            this.rootEvaluationDelay = rootEvaluationDelay;
         }
         public void StartTree()
         {
@@ -36,12 +33,9 @@ namespace BehaviorTrees
                 try
                 {
                     await RootNode.Execute(cancellationToken);
-                    await Task.Delay(2000);
+                    await Task.Delay(rootEvaluationDelay);
                 }
-                catch (OperationCanceledException)
-                {
-
-                }
+                catch (OperationCanceledException) { }
             }
         }
         public void Dispose()
@@ -49,16 +43,17 @@ namespace BehaviorTrees
             if (!_disposed)
             {
                 _cancellationTokenSource?.Cancel();
-                //CurrentControlNode.ClearTasks();
-                //CurrentControlNode.RemoveDecorators();
                 _disposed = true;
             }
         }
-        public static BehaviorTreeBuilder<TTree> BuildTree<TTree>(TTree tree) where TTree : BehaviorTree
+        protected static BehaviorTreeBuilder<TTree> StartBuildingTree<TTree>(TTree tree) where TTree : BehaviorTree
         {
             BehaviorTreeBuilder<TTree> newBuilder = new(tree);
-
             return newBuilder;
+        }
+        public static BehaviorTree? BuildTree(object[] objects)
+        {
+            throw new NotImplementedException("Derived classes must implement the BuildTree method.");
         }
     }
 }

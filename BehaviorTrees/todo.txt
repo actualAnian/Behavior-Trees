@@ -6,4 +6,3 @@ CLEANUP
 
 TESTING
 - delete objects when exiting a scene - check for memory leaks by opening & ending scenes multiple times
-- move nodes when one finishes - check with a more complicated tree

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using TaleWorlds.Core;
 using System.Linq;
 using System;
+using BehaviorTrees;
+using BehaviorTreeWrapper.Decorators;
+using BehaviorTreeWrapper.Trees;
 
 namespace BehaviorTreeWrapper
 {
@@ -22,7 +25,7 @@ namespace BehaviorTreeWrapper
 
         static BehaviorTreeMissionLogic _instance;
         Dictionary<SubscriptionPossibilities, List<BannerlordBTListener>> actions = new();
-        public Dictionary<int, BannerlordTree> trees = new();
+        public Dictionary<int, BehaviorTree> trees = new();
         float mainTime;
         float giveTreesTime;
         public override MissionBehaviorType BehaviorType => MissionBehaviorType.Other;
@@ -65,6 +68,7 @@ namespace BehaviorTreeWrapper
 
             if (giveTreesTime > 1 && !Globals.IsMissionInitialized)
             {
+                BTRegister.RegisterClass("ExampleTree", objects => ExampleTree.BuildTree(objects));
                 foreach (var agent in Mission.Agents)
                 {
                     if (agent == Agent.Main) continue; 

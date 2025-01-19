@@ -12,5 +12,15 @@
 		<Configurations>Debug;Release;aaa</Configurations>
 	</PropertyGroup>
 
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="xcopy /y /d &quot;$(ProjectDir)\\bin\x64\Debug\net472\\BehaviorTree*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;" />
+	</Target>
+
+	<ItemGroup>
+	  <Reference Include="TaleWorlds.Library">
+	    <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Mount &amp; Blade II Bannerlord\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
 
 </Project>

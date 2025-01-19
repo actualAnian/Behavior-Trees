@@ -1,4 +1,6 @@
-﻿using System;
+﻿using BehaviorTrees;
+using BehaviorTreeWrapper.Decorators;
+using System;
 using System.Threading;
 
 namespace BehaviorTreeWrapper
@@ -39,7 +41,7 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed)//true)//!_disposed)
             {
-                foreach (BannerlordTree tree in CurrentMissionLogic.trees.Values)
+                foreach (BehaviorTree tree in CurrentMissionLogic.trees.Values)
                 {
                     tree.Dispose();
                 }
