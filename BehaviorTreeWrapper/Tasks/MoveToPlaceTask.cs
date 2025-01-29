@@ -10,7 +10,7 @@ using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Tasks
 {
-    public class MoveToPlaceTask : BTTask, IMovable, IBannerlordBase
+    public class MoveToPlaceTask : BTTask, IBTMovable, IBTBannerlordBase
     {
         BTBlackboardValue<AgentNavigator> _navigator;
         public BTBlackboardValue<AgentNavigator> Navigator { get => _navigator; set => _navigator = value; }

@@ -32,7 +32,7 @@ namespace BehaviorTrees
         internal BehaviorTreeBuilder(TTree tree)
         {
             TreeBeingBuild = tree;
-            _currentNode = new Sequence(TreeBeingBuild);
+            _currentNode = new Selector(TreeBeingBuild);
             _previousNodes = new();
             TreeBeingBuild.RootNode = _currentNode;
         }
@@ -43,36 +43,45 @@ namespace BehaviorTrees
             decorator.NodeBeingDecoracted = _currentNode;
             decorator.CreateListener();
         }
-        public BehaviorTreeBuilder<TTree> AddSequence<DDecorator>(string name, DDecorator? decorator = null) where DDecorator : BTDecorator
+        public BehaviorTreeBuilder<TTree> AddSequence<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
         {
             if (_hasError) return this;
-            Sequence sequence = new(TreeBeingBuild, new(), decorator);
+            Sequence sequence = new(TreeBeingBuild, new(), decorator, weight);
             _currentNode.AddChild(sequence);
             _previousNodes.Push(_currentNode);
             _currentNode = sequence;
             if (decorator != null) SetDecorator(decorator);
             return this;
         }
-        public BehaviorTreeBuilder<TTree> AddSequence(string name)
+        public BehaviorTreeBuilder<TTree> AddSequence(string name, int weight = 100)
         {
-            return AddSequence<BTDecorator>(name, null);
+            return AddSequence<BTDecorator>(name, null, weight);
         }
 
-        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null) where DDecorator : BTDecorator
+        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
         {
             if (_hasError) return this;
-            Selector selector = new(TreeBeingBuild, new(), decorator);
+            Selector selector = new(TreeBeingBuild, new(), decorator, weight);
             _currentNode.AddChild(selector); 
             _previousNodes.Push(_currentNode);
             _currentNode = selector;
             if (decorator != null) SetDecorator(decorator);
             return this;
         }
-        public BehaviorTreeBuilder<TTree> AddSelector(string name)
+        public BehaviorTreeBuilder<TTree> AddSelector(string name, int weight = 100)
         {
-            return AddSelector<BTDecorator>(name, null);
+            return AddSelector<BTDecorator>(name, null, weight);
         }
-
+        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
+        {
+            if (_hasError) return this;
+            RandomSelector randomSelector = new(TreeBeingBuild, decorator, new(), weight);
+            _currentNode.AddChild(randomSelector);
+            _previousNodes.Push(_currentNode);
+            _currentNode = randomSelector;
+            if (decorator != null) SetDecorator(decorator);
+            return this;
+        }
 
         //public BehaviorTreeBuilder<TTree> AddTask<TaskTree>(BTTask<TaskTree> task) where TaskTree : BehaviorTree
         //{

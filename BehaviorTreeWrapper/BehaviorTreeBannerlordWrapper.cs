@@ -36,10 +36,18 @@ namespace BehaviorTreeWrapper
         {
             CurrentMissionLogic?.UnSubscribe(listener);
         }
+        public void Subscribe(BannerlordBTTickListener listener)
+        {
+            CurrentMissionLogic?.Subscribe(listener);
+        }
+        public void UnSubscribe(BannerlordBTTickListener listener)
+        {
+            CurrentMissionLogic?.UnSubscribe(listener);
+        }
 
         public void Dispose()
         {
-            if (!_disposed)//true)//!_disposed)
+            if (!_disposed)
             {
                 foreach (BehaviorTree tree in CurrentMissionLogic.trees.Values)
                 {

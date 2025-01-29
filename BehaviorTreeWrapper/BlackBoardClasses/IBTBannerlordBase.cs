@@ -3,7 +3,7 @@ using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.BlackBoardClasses
 {
-    public interface IBannerlordBase : IBTBlackboard
+    public interface IBTBannerlordBase : IBTBlackboard
     {
         public BTBlackboardValue<Agent> Agent { get; set; }
     }

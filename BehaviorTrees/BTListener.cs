@@ -28,7 +28,7 @@ namespace BehaviorTrees
             _tcs = new();
         }
         public abstract void UnSubscribe();
-        public abstract void Notify(List<object> data);
+
         public void Signal(bool success)
         {
             if (success)
@@ -41,9 +41,18 @@ namespace BehaviorTrees
         {
             return _tcs.Task;
         }
+        public void Notify(object[] data)
+        {
+            Notifies.Notify(data);
+            Signal(true);
+        }
+        public void NotifyWithCancel()
+        {
+            Signal(false);
+        }
     }
     public interface INotifiable
     {
-        public void Notify(List<object> data);
+        public void Notify(object[] data);
     }
 }

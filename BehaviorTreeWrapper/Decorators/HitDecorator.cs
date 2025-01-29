@@ -13,7 +13,7 @@ namespace BehaviorTreeWrapper.Decorators
             hasBeenHit = false;
             return true;
         }
-        public override void Notify(List<object> data)
+        public override void Notify(object[] data)
         {
             hasBeenHit = true;
         }

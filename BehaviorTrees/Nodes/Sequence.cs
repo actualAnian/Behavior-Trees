@@ -6,7 +6,7 @@ namespace BehaviorTrees.Nodes
 {
     public class Sequence : BTControlNode
     {
-        public Sequence(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
+        public Sequence(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, decorator, children, weight) { }
         protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
         {
             bool shouldContinue = true;

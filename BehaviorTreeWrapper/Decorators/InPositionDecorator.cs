@@ -6,10 +6,10 @@ using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class InPositionDecorator : BannerlordDecorator, IBannerlordBase
+    public class InPositionDecorator : BannerlordTickTimedDecorator, IBTBannerlordBase
     {
         private Vec3 position;
-        public InPositionDecorator(Vec3 position, SubscriptionPossibilities SubscribesTo) : base(SubscribesTo, OnDecoratorFalse.AwaitEvent)
+        public InPositionDecorator(Vec3 position) : base(1)
         {
             this.position = position;
         }
@@ -20,6 +20,6 @@ namespace BehaviorTreeWrapper.Decorators
         {
             return Agent.GetValue().Position.Distance(position) < 2;
         }
-        public override void Notify(List<object> data) { }
+        public override void Notify(object[] data) { }
     }
 }

@@ -7,7 +7,7 @@ using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Tasks
 {
-    public class ClearMovementTask : BTTask, IMovable
+    public class ClearMovementTask : BTTask, IBTMovable
     {
         BTBlackboardValue<AgentNavigator> _navigator;
         public BTBlackboardValue<AgentNavigator> Navigator { get => _navigator; set => _navigator = value; }

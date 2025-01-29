@@ -8,7 +8,7 @@ using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Trees
 {
-    public class ExampleTree : BehaviorTree, IBannerlordBase, IMovable
+    public class ExampleTree : BehaviorTree, IBTBannerlordBase, IBTMovable
     {
         public BTBlackboardValue<AgentNavigator> Navigator { get; set; }
         public BTBlackboardValue<Agent> Agent { get; set; }
@@ -24,14 +24,14 @@ namespace BehaviorTreeWrapper.Trees
             Vec3 position = new(373, 295, 20);
             ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
                 .AddSelector("main")
-                    .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnAgentAlarmedStateChanged))
+                    .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged))
                         .AddTask(new PrintTask())
                         .Up()
-                    .AddSequence("spotted", new HitDecorator(SubscriptionPossibilities.OnAgentHit))
+                    .AddSequence("spotted", new HitDecorator(SubscriptionPossibilities.OnSelfIsHit))
                         .AddTask(new MoveToPlaceTask(position))
-                        .AddTask(new PrintTask2())
+                        .AddTask(new PrintMessageTask("I am hit"))
                         .Up()
-                    .AddSequence("spotted", new InPositionDecorator(position, SubscriptionPossibilities.OnMissionTick))
+                    .AddSequence("spotted", new InPositionDecorator(position))
                         .AddTask(new ClearMovementTask())
                         .Up()
                 .Finish();

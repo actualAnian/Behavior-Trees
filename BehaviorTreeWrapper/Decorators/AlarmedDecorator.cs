@@ -6,7 +6,7 @@ using static TaleWorlds.MountAndBlade.Agent;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class AlarmedDecorator : BannerlordDecorator, IBannerlordBase
+    public class AlarmedDecorator : BannerlordDecorator, IBTBannerlordBase
     {
         BTBlackboardValue<Agent> _agent;
         public BTBlackboardValue<Agent> Agent { get => _agent; set => _agent = value; }
@@ -23,9 +23,6 @@ namespace BehaviorTreeWrapper.Decorators
             }
             return false;
         }
-        public override void Notify(List<object> data)
-        {
-            base.Notify(data);
-        }
+        public override void Notify(object[] data) { }
     }
 }

@@ -6,7 +6,7 @@ namespace BehaviorTrees.Nodes
 {
     public class Selector : BTControlNode
     {
-        public Selector(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null) : base(tree, decorator, children) { }
+        public Selector(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, decorator, children, weight) { }
         protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
         {
             foreach (BTNode child in allChildren)

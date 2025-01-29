@@ -16,7 +16,7 @@ namespace BehaviorTrees
                 RegisteredBuilders[className] = factory;
             }
         }
-        public static BehaviorTree Build(string className, params object[] args)
+        public static BehaviorTree? Build(string className, params object[] args)
         {
             if (RegisteredBuilders.TryGetValue(className, out var builder))
             {

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BehaviorTrees.Nodes;
 
-namespace BehaviorTrees
+namespace BehaviorTrees.Nodes
 {
     public abstract class BTControlNode : BTNode
     {
@@ -18,8 +17,8 @@ namespace BehaviorTrees
         public List<BTListener> Listeners { get; private set; }
         protected List<Task<bool>> tasks = new();
         protected List<AbstractDecorator> decorators = new();
-        
-        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null) : base()
+
+        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
         {
             BaseTree = tree;
             _decorator = decorator;

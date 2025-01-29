@@ -15,12 +15,13 @@ namespace BehaviorTreeWrapper.Tasks
             return true;
         }
     }
-    public class PrintTask2 : BTTask
+    public class PrintMessageTask : BTTask
     {
-        public PrintTask2() : base() { }
+        string message;
+        public PrintMessageTask(string message) : base() { this.message = message; }
         public override async Task<bool> Execute(CancellationToken cancellationToken)
         {
-            MBInformationManager.AddQuickInformation(new TextObject("I am hit!", null), 0, null, "");
+            MBInformationManager.AddQuickInformation(new TextObject(message, null), 0, null, "");
             return true;
         }
     }

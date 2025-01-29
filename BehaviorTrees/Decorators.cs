@@ -30,7 +30,7 @@ namespace BehaviorTrees
         {
             listener.UnSubscribe();
         }
-        public virtual void Notify(List<object> data) { }
+        public abstract void Notify(object[] data);
         internal OnDecoratorFalse OnDecoratorFalse => _onFalse;
     }
     public abstract class BTDecorator : AbstractDecorator

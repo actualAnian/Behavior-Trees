@@ -1,15 +1,15 @@
 ﻿using BehaviorTrees;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class BannerlordBTListener : BTListener
+    public class BannerlordBTTickListener : BTListener
     {
-        public SubscriptionPossibilities SubscribesTo { get; set; }
-        internal BannerlordBTListener(SubscriptionPossibilities subscribesTo, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
+        // Subscribes to: SubscriptionPossibilities.OnMissionTick
+        public double SecondsTillEvent { get; }
+        internal BannerlordBTTickListener(double secondsTillEvent, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
         {
-            SubscribesTo = subscribesTo;
+            this.SecondsTillEvent = secondsTillEvent;
         }
         public override void Subscribe(CancellationToken cancellationToken)
         {
