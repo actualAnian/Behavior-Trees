@@ -21,8 +21,8 @@ namespace BehaviorTrees.Nodes
                 else
                 {
                     bool evaluate = child.Decorator.Evaluate();
-                    if (!evaluate && child.Decorator.OnDecoratorFalse == OnDecoratorFalse.ReturnFalse) return false;
-                    while (!evaluate && child.Decorator.OnDecoratorFalse == OnDecoratorFalse.AwaitEvent)
+                    if (!evaluate && child.Decorator is BTReturnFalseDecorator) return false;
+                    while (!evaluate && child.Decorator is BTEventDecorator)
                     {
                         await child.AddDecoratorsListeners(cancellationToken);
                         evaluate = child.Decorator.Evaluate();

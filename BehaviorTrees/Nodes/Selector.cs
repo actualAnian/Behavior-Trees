@@ -15,7 +15,7 @@ namespace BehaviorTrees.Nodes
                 else
                 {
                     if (child.Decorator.Evaluate()) currentlyExecutableChildren.Add(child);
-                    else if (child.Decorator.OnDecoratorFalse == OnDecoratorFalse.AwaitEvent) childrenWithTasks.Add(child);
+                    else if (child.Decorator is BTEventDecorator) childrenWithTasks.Add(child);
                 }
             }
             bool shouldStop = false;
@@ -33,7 +33,7 @@ namespace BehaviorTrees.Nodes
                 currentlyExecutableChildren = new();
                 if (childrenWithTasks.Count > 0)
                 {
-                    List<AbstractDecorator> decoratorsList = new(decorators);
+                    List<BTEventDecorator> decoratorsList = new(decorators);
                     List<Task<bool>> tasksList = new(tasks)
                     {
                         GetCancellationTask(cancellationToken)
@@ -42,7 +42,7 @@ namespace BehaviorTrees.Nodes
                     cancellationToken.ThrowIfCancellationRequested();
                     int completedIndex = tasks.IndexOf(completedTask);
                     if (!completedTask.Result) return false;
-                    AbstractDecorator decoratorCalled = decoratorsList[completedIndex];
+                    BTEventDecorator decoratorCalled = decoratorsList[completedIndex];
                     BTNode child = decoratorCalled.NodeBeingDecoracted;
                     if (decoratorCalled.Evaluate())
                     {
@@ -57,7 +57,7 @@ namespace BehaviorTrees.Nodes
                             RemoveDecorator(decoratorCalled);
                             decorators.RemoveAt(completedIndex);
                             tasks.Add(child.AddDecoratorsListeners(cancellationToken));
-                            decorators.Add(child.Decorator);
+                            decorators.Add((BTEventDecorator)child.Decorator);
                         }
                     }
                     if (shouldStop) return true;

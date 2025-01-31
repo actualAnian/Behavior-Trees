@@ -1,4 +1,6 @@
-﻿namespace BehaviorTreeWrapper.Decorators
+﻿using BehaviorTreeWrapper.AbstractDecoratorsListeners;
+
+namespace BehaviorTreeWrapper.Decorators
 {
     internal class WaitNSecondsTickDecorator : BannerlordTickTimedDecorator
     {

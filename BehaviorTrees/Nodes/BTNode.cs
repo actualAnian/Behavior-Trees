@@ -18,9 +18,9 @@ namespace BehaviorTrees.Nodes
         }
         protected BTNode(int weight = 100) { this.weight = weight; }
         public virtual async Task<bool> Execute(CancellationToken cancellationToken) { return true; }
-        public Task<bool>? AddDecoratorsListeners(CancellationToken cancellationToken)
+        public Task<bool> AddDecoratorsListeners(CancellationToken cancellationToken)
         {
-            return Decorator?.AddListener(cancellationToken);
+            return ((BTEventDecorator)Decorator).AddListener(cancellationToken);
         }
     }
 }

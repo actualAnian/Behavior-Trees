@@ -5,31 +5,25 @@ using System.Threading.Tasks;
 
 namespace BehaviorTrees.Nodes
 {
+    // Ignores decorators that await an event
     internal class RandomSelector : BTControlNode
     {
-        private bool calculatedWeight = false;
-        private int totalWeight;
-        private int TotalWeight { 
-            get
-            {
-                if (!calculatedWeight) SumWeights();
-                return totalWeight; 
-            }
-        }
-        private Random random = new();
+        private readonly Random random = new();
         public RandomSelector(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(tree, decorator, children, weight)
         {
         }
-        private void SumWeights()
-        {
-            calculatedWeight = true;
-            totalWeight = 0;
-            allChildren.ForEach(child => { totalWeight += child.weight; });
-        }
         protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
         {
-            int randomNumber = random.Next(TotalWeight);
+            int totalWeight = 0;
+            List<BTNode> validChildren = new();
             foreach (BTNode child in allChildren)
+            {
+                if (child.Decorator?.Evaluate() == false) continue;
+                totalWeight += child.weight;
+                validChildren.Add(child);
+            }
+            int randomNumber = random.Next(totalWeight);
+            foreach (BTNode child in validChildren)
             {
                 randomNumber -= child.weight;
                 if (randomNumber < 0)
@@ -37,7 +31,7 @@ namespace BehaviorTrees.Nodes
                     return await child.Execute(cancellationToken);
                 }
             }
-            return false; // Fallback (shouldn't reach here)
+            return false; // fallback (shouldn't reach here)
         }
     }
 }

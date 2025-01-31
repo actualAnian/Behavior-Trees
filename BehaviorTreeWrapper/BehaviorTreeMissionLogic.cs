@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using TaleWorlds.Core;
 using System.Linq;
 using BehaviorTrees;
-using BehaviorTreeWrapper.Decorators;
 using BehaviorTreeWrapper.Trees;
 using TaleWorlds.Library;
+using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 
 namespace BehaviorTreeWrapper
 {
+    public class TestComponent : AgentComponent
+    {
+        public TestComponent(Agent agent) : base(agent)
+        {
+        }
+    }
+
     public enum SubscriptionPossibilities
     {
         //use BannerlordTickTimedDecorator for OnMissionTick
@@ -41,9 +48,6 @@ namespace BehaviorTreeWrapper
         Dictionary<SubscriptionPossibilities, List<BannerlordBTListener>> actions = new();
         public Dictionary<Agent, BehaviorTree> trees = new();
         private readonly List<(BannerlordBTTickListener listener, double elapsedTime)> tickListeners = new();
-
-        float mainTime;
-        float giveTreesTime;
         public override MissionBehaviorType BehaviorType => MissionBehaviorType.Other;
         public void Subscribe(BannerlordBTListener listener)
         {
@@ -84,37 +88,11 @@ namespace BehaviorTreeWrapper
         }
         public BehaviorTreeMissionLogic()
         {
-            Globals.IsMissionInitialized = false;
             BehaviorTreeBannerlordWrapper.Instance.CurrentMissionLogic = this;
-        }
-        public override void AfterStart()
-        {
-            giveTreesTime = 0;
         }
 
         public override void OnMissionTick(float dt)
         {
-            base.OnMissionTick(dt);
-            if (Agent.Main == null)
-                return;
-
-            //if (giveTreesTime > 1 && !Globals.IsMissionInitialized)
-            //{
-            //    BTRegister.RegisterClass("ExampleTree", objects => ExampleTree.BuildTree(objects));
-            //    BTRegister.RegisterClass("EnemyAttackTree", objects => RatTestTree.BuildTree(objects));
-            //    foreach (var agent in Mission.Agents)
-            //    {
-            //        agent.AddComponent(new BehaviorTreeAgentComponent(agent, "EnemyAttackTree"));
-            //        //if (agent == Agent.Main) continue;
-            //        //agent.AddBehaviorTree();
-            //    }
-            //    Globals.IsMissionInitialized = true;
-            //}
-            //else
-            //{
-            //    giveTreesTime += dt;
-            //}
-
             object[] toSend = { dt };
             for (int i = tickListeners.Count - 1; i >= 0; i--)
             {
@@ -153,7 +131,6 @@ namespace BehaviorTreeWrapper
             {
                 object[] toSend = { agent };
                 listeners.ForEach(listener => { listener.Notify(toSend); });
-
             }
         }
         public override void OnAgentFleeing(Agent affectedAgent)
@@ -207,7 +184,7 @@ namespace BehaviorTreeWrapper
         public override void OnAgentRemoved(Agent affectedAgent, Agent affectorAgent, AgentState agentState, KillingBlow blow)
         {
             List<BannerlordBTListener> listeners = FindCalledListeners(affectedAgent, SubscriptionPossibilities.OnSelfRemoved);
-            if (listeners == null)
+            if (listeners != null)
             {
                 List<BannerlordBTListener> listToIterate = listeners.ToList();
                 object[] toSend = { affectorAgent, agentState, blow };
@@ -221,7 +198,7 @@ namespace BehaviorTreeWrapper
                 listToIterate.ForEach(listener => { listener.Notify(toSend); });
             }
             actions.TryGetValue(SubscriptionPossibilities.OnAgentRemoved, out listeners);
-            if (listeners == null)
+            if (listeners != null)
             {
                 List<BannerlordBTListener> listToIterate = listeners.ToList();
                 object[] toSend = { affectedAgent, affectorAgent, agentState, blow };

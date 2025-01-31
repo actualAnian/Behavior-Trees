@@ -1,12 +1,12 @@
 ﻿using BehaviorTrees;
 
-namespace BehaviorTreeWrapper.Decorators
+namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
 {
-    public abstract class BannerlordTickTimedDecorator : BTDecorator
+    public abstract class BannerlordTickTimedDecorator : BTEventDecorator
     {
         //Subscribes to SubscriptionPossibilities.OnMissionTick;
         private readonly double secondsTillEvent;
-        protected BannerlordTickTimedDecorator(double secondsTillEvent = 0.66667) : base(OnDecoratorFalse.AwaitEvent)
+        protected BannerlordTickTimedDecorator(double secondsTillEvent = 0.66667) : base()
         {
             this.secondsTillEvent = secondsTillEvent;
         }

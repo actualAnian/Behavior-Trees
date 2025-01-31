@@ -6,7 +6,7 @@ using BehaviorTreeWrapper.Decorators;
 using BehaviorTreeWrapper.Tasks;
 using BehaviorTreeWrapper.BlackBoardClasses;
 
-namespace BehaviorTreeWrapper.Trees
+namespace BehaviorTreeWrapper.Tests
 {
     public class ExampleTree : BehaviorTree, IBTBannerlordBase, IBTMovable
     {
@@ -25,13 +25,13 @@ namespace BehaviorTreeWrapper.Trees
             ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
                 .AddSelector("main")
                     .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged))
-                        .AddTask(new PrintTask())
+                        .AddTask(new PrintQuickMessageTask("I am spotted"))
                         .Up()
-                    .AddSequence("spotted", new HitDecorator(SubscriptionPossibilities.OnSelfIsHit))
+                    .AddSequence("hit", new HitDecorator(SubscriptionPossibilities.OnSelfIsHit))
                         .AddTask(new MoveToPlaceTask(position))
-                        .AddTask(new PrintMessageTask("I am hit"))
+                        .AddTask(new PrintQuickMessageTask("I am hit"))
                         .Up()
-                    .AddSequence("spotted", new InPositionDecorator(position))
+                    .AddSequence("moved", new InPositionDecorator(position))
                         .AddTask(new ClearMovementTask())
                         .Up()
                 .Finish();

@@ -1,12 +1,13 @@
 ﻿using BehaviorTrees;
+using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 using System.Collections.Generic;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class HitDecorator : BannerlordDecorator
+    public class HitDecorator : BannerlordEventDecorator
     {
         private bool hasBeenHit = false;
-        public HitDecorator(SubscriptionPossibilities SubscribesTo) : base(SubscribesTo, OnDecoratorFalse.AwaitEvent) { }
+        public HitDecorator(SubscriptionPossibilities SubscribesTo) : base(SubscribesTo) { }
         public override bool Evaluate()
         {
             if (!hasBeenHit) return false;

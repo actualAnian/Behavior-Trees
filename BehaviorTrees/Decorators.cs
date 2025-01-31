@@ -5,22 +5,18 @@ using BehaviorTrees.Nodes;
 
 namespace BehaviorTrees
 {
-    public enum OnDecoratorFalse
+    public abstract class AbstractDecorator
     {
-        ReturnFalse,
-        AwaitEvent
-    }
-    public abstract class AbstractDecorator : INotifiable
-    {
-        protected BTListener listener;
         public BTNode NodeBeingDecoracted { get; internal set; }
 
-        private readonly OnDecoratorFalse _onFalse;
-        protected internal AbstractDecorator(OnDecoratorFalse onFalse)
-        {
-            _onFalse = onFalse;
-        }
+        protected internal AbstractDecorator() {}
         abstract public bool Evaluate();
+    }
+    public abstract class BTEventDecorator : AbstractDecorator, INotifiable
+    {
+        protected BTListener listener;
+        public abstract void Notify(object[] data);
+        internal protected BehaviorTree Tree { get; set; }
         public Task<bool> AddListener(CancellationToken cancellationToken)
         {
             listener.Subscribe(cancellationToken);
@@ -30,15 +26,12 @@ namespace BehaviorTrees
         {
             listener.UnSubscribe();
         }
-        public abstract void Notify(object[] data);
-        internal OnDecoratorFalse OnDecoratorFalse => _onFalse;
-    }
-    public abstract class BTDecorator : AbstractDecorator
-    {
-        internal protected BehaviorTree Tree { get; set; }
-        public BTDecorator(OnDecoratorFalse onFalse) : base(onFalse)
-        {
-        }
+
+        public BTEventDecorator() : base() { }
         public abstract void CreateListener();
+    }
+    public abstract class BTReturnFalseDecorator : AbstractDecorator
+    {
+
     }
 }

@@ -16,7 +16,7 @@ namespace BehaviorTrees.Nodes
         public override AbstractDecorator? Decorator => _decorator;
         public List<BTListener> Listeners { get; private set; }
         protected List<Task<bool>> tasks = new();
-        protected List<AbstractDecorator> decorators = new();
+        protected List<BTEventDecorator> decorators = new();
 
         protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
         {
@@ -51,9 +51,9 @@ namespace BehaviorTrees.Nodes
         {
             foreach (BTNode chi in childrenWithTasks)
             {
-                if (chi.Decorator == null) continue;
+                if (chi.Decorator == null || chi.Decorator is not BTEventDecorator eventDecorator) continue;
                 tasks.Add(chi.AddDecoratorsListeners(cancellationToken));
-                decorators.Add(chi.Decorator);
+                decorators.Add(eventDecorator);
             }
         }
         public override sealed async Task<bool> Execute(CancellationToken cancellationToken)
@@ -70,13 +70,13 @@ namespace BehaviorTrees.Nodes
             return result;
         }
         protected abstract Task<bool> ExecuteImplementation(CancellationToken cancellationToken);
-        protected void RemoveDecorator(AbstractDecorator decorator)
+        protected void RemoveDecorator(BTEventDecorator decorator)
         {
             decorator.Remove();
         }
         internal void RemoveDecorators()
         {
-            childrenWithTasks.ForEach(child => { if (child.Decorator != null) RemoveDecorator(child.Decorator); });
+            childrenWithTasks.ForEach(child => { if (child.Decorator is not null and BTEventDecorator decorator) { RemoveDecorator(decorator); } });
         }
         public void ClearTasks()
         {

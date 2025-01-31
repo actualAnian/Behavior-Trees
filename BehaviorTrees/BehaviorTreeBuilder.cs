@@ -1,25 +1,36 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using BehaviorTrees.Nodes;
-using TaleWorlds.Library;
 
 namespace BehaviorTrees
 {
+    public class IncorrectParametersException : Exception
+    {
+        public IncorrectParametersException(Type tree) : base($"Can not create a tree {tree.Name}, received incorrect parameters") { }
+    }
+
     public class BehaviorTreeBuilder<TTree> where TTree : BehaviorTree
     {
         public class AlreadyInRootException : Exception
         {
             public AlreadyInRootException(Type type) : base($"Error building the tree {type.Name} in method, can not go Up, already in root.") { }
         }
-        public class TaskRequiresADifferentTree : Exception
+        public class MissingTreeBlackBoardException : Exception
         {
-            public TaskRequiresADifferentTree(Type taskType, Type treeType, Type taskTreeType) : base($"The task {taskType} requires a tree of type {taskTreeType.Name}, while {treeType.Name} was received") { }
+            public MissingTreeBlackBoardException(BehaviorTree TreeBeingBuild, Type interfaceType, object node) : 
+                base($"error creating tree {TreeBeingBuild.GetType().Name}. The tree does not implement the interface {interfaceType.Name}, but {node.GetType().Name} does.") { }
+        }
+        public class IncorrectPropertyException : Exception
+        {
+            public IncorrectPropertyException(BehaviorTree source, PropertyInfo property) :
+                base($"error creating tree {source.GetType().Name}. The property {property.Name} can not be assigned. Is it missing get or set methods?")
+            { }
+        }
+        public class CanNotCreateSubTreeException : Exception
+        {
+            public CanNotCreateSubTreeException(string treeName) : base($"Can not create a subtree of type {treeName}") { }
         }
         public bool IsSuccessful()
         {
@@ -36,16 +47,19 @@ namespace BehaviorTrees
             _previousNodes = new();
             TreeBeingBuild.RootNode = _currentNode;
         }
-        private void SetDecorator<DDecorator>(DDecorator decorator) where DDecorator : BTDecorator
+        private void SetDecorator<DDecorator>(DDecorator decorator) where DDecorator : AbstractDecorator
         {
             CopyAllInterfacesProperties(decorator);
-            decorator.Tree = TreeBeingBuild;
+            if (decorator is BTEventDecorator eventDecorator)
+            {
+                eventDecorator.Tree = TreeBeingBuild;
+                eventDecorator.CreateListener();
+            }
             decorator.NodeBeingDecoracted = _currentNode;
-            decorator.CreateListener();
         }
-        public BehaviorTreeBuilder<TTree> AddSequence<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
+        public BehaviorTreeBuilder<TTree> AddSequence<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
         {
-            if (_hasError) return this;
+            //if (_hasError) return this;
             Sequence sequence = new(TreeBeingBuild, new(), decorator, weight);
             _currentNode.AddChild(sequence);
             _previousNodes.Push(_currentNode);
@@ -55,12 +69,12 @@ namespace BehaviorTrees
         }
         public BehaviorTreeBuilder<TTree> AddSequence(string name, int weight = 100)
         {
-            return AddSequence<BTDecorator>(name, null, weight);
+            return AddSequence<BTEventDecorator>(name, null, weight);
         }
 
-        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
+        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTEventDecorator
         {
-            if (_hasError) return this;
+            //if (_hasError) return this;
             Selector selector = new(TreeBeingBuild, new(), decorator, weight);
             _currentNode.AddChild(selector); 
             _previousNodes.Push(_currentNode);
@@ -70,11 +84,11 @@ namespace BehaviorTrees
         }
         public BehaviorTreeBuilder<TTree> AddSelector(string name, int weight = 100)
         {
-            return AddSelector<BTDecorator>(name, null, weight);
+            return AddSelector<BTEventDecorator>(name, null, weight);
         }
-        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTDecorator
+        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTEventDecorator
         {
-            if (_hasError) return this;
+            //if (_hasError) return this;
             RandomSelector randomSelector = new(TreeBeingBuild, decorator, new(), weight);
             _currentNode.AddChild(randomSelector);
             _previousNodes.Push(_currentNode);
@@ -82,31 +96,30 @@ namespace BehaviorTrees
             if (decorator != null) SetDecorator(decorator);
             return this;
         }
-
-        //public BehaviorTreeBuilder<TTree> AddTask<TaskTree>(BTTask<TaskTree> task) where TaskTree : BehaviorTree
-        //{
-        //    TaskTree? treeAsTaskTree = TreeBeingBuild as TaskTree ?? throw new TaskRequiresADifferentTree(task.GetType(), typeof(TTree), typeof(TaskTree));
-        //    _currentNode.AddChild(task);
-        //    task.Tree = treeAsTaskTree;
-        //    return this;
-        //}
+        public BehaviorTreeBuilder<TTree> AddSubTree(string subTreeName, int weight = 100, params object[] args)
+        {
+            //if (!_hasError) return this;
+            BehaviorTree? subTree;
+            subTree = BTRegister.Build(subTreeName, args);
+            if (subTree == null)
+            {
+                throw new CanNotCreateSubTreeException(subTreeName);
+                //_hasError = true;
+                //return this;
+            }
+            _currentNode.AddChild(subTree.RootNode);
+            return this;
+        }
         public BehaviorTreeBuilder<TTree> Up()
         {
+            //if (!_hasError) return this;
             if (_previousNodes.Count == 0) throw new AlreadyInRootException(typeof(TTree));
             _currentNode = _previousNodes.Pop();
             return this;
         }
         public BehaviorTreeBuilder<TTree> AddTask<TTask>(TTask task) where TTask : BTTask
         {
-            if (_hasError) return this;
-            //Type[] treeInterfaces = typeof(TTree).GetInterfaces();
-            //Type[] taskInterfaces = typeof(TTask).GetInterfaces();
-
-            //foreach (Type? interfaceType in taskInterfaces.Intersect(treeInterfaces))
-            //{
-            //    if (!typeof(IBTBlackboard).IsAssignableFrom(interfaceType) || interfaceType is IBTBlackboard) continue;
-            //    CopyInterfaceProperties(TreeBeingBuild, task, interfaceType);
-            //}
+            //if (_hasError) return this;
             CopyAllInterfacesProperties(task);
             _currentNode.AddChild(task);
             return this;
@@ -121,8 +134,7 @@ namespace BehaviorTrees
                 if (!treeInterfaces.Contains(interfaceType))
                 {
                     _hasError = true;
-                    InformationManager.DisplayMessage(new InformationMessage($"error creating tree {TreeBeingBuild.GetType().Name}. The tree does not implement the interface {interfaceType.Name}, but {node.GetType().Name} does."));
-                    return;
+                    throw new MissingTreeBlackBoardException(TreeBeingBuild, interfaceType, node);
                 }
                 CopyInterfaceProperties(TreeBeingBuild, node, interfaceType);
             }
@@ -140,7 +152,7 @@ namespace BehaviorTrees
                 }
                 else
                 {
-                    InformationManager.DisplayMessage(new InformationMessage($"error creating tree {source.GetType().Name}. The property {property.Name} can not be assigned. Is it missing get or set methods?"));
+                    throw new IncorrectPropertyException(source, property);
                 }
             }
         }
