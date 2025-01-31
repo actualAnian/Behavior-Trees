@@ -1,7 +1,5 @@
 ﻿using BehaviorTrees.Nodes;
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,8 +12,8 @@ namespace BehaviorTrees
         private bool _disposed = false;
         private readonly int rootEvaluationDelay = 2000; // miliseconds
 
-        public BTControlNode CurrentControlNode { get; set; }
-        public BTControlNode RootNode { get; set; }
+        internal BTControlNode CurrentControlNode { get; set; }
+        internal BTControlNode RootNode { get; set; }
         public BehaviorTree(int rootEvaluationDelay = 2000)
         {
             this.rootEvaluationDelay = rootEvaluationDelay;
@@ -26,7 +24,7 @@ namespace BehaviorTrees
             _cancellationTokenSource = new CancellationTokenSource();
             ExecuteNode(_cancellationTokenSource.Token);
         }
-        public async void ExecuteNode(CancellationToken cancellationToken)
+        private async void ExecuteNode(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -51,6 +49,12 @@ namespace BehaviorTrees
             BehaviorTreeBuilder<TTree> newBuilder = new(tree);
             return newBuilder;
         }
+        /// <summary>
+        /// Should start with StartBuildingTree, afterwards build nodes, tasks, up, end with Finish
+        /// </summary>
+        /// <param name="objects"></param>
+        /// <returns>Returns the built tree.</returns>
+        /// <exception cref="NotImplementedException"></exception>
         public static BehaviorTree? BuildTree(object[] objects)
         {
             throw new NotImplementedException("Derived classes must implement the BuildTree method.");

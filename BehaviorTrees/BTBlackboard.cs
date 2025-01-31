@@ -1,5 +1,8 @@
 ﻿namespace BehaviorTrees
 {
+    /// <summary>
+    /// Only objects of type BTBlackBoardValue will work.
+    /// </summary>
     public interface IBTBlackboard { }
     public class BTBlackboardValue<Type>
     {

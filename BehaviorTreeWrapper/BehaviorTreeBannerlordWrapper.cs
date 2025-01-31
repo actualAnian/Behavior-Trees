@@ -83,8 +83,11 @@ namespace BehaviorTreeWrapper
         }
         public void DisposeTree(Agent agent)
         {
-            _missionLogic.trees[agent].Dispose();
-            _missionLogic.trees.Remove(agent);
+            if (!_disposed && _missionLogic != null)
+            {
+                _missionLogic.trees[agent].Dispose();
+                _missionLogic.trees.Remove(agent);
+            }
         }
         public void Dispose()
         {

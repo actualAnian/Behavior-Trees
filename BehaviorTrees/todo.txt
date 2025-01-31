@@ -1,8 +1,0 @@
-﻿TO DO
-- refactor the tree to be an AgentComponent instead of an outside object if possible
-- create a couple trees
-CLEANUP
-- clear all the commited code from tests
-
-TESTING
-- delete objects when exiting a scene - check for memory leaks by opening & ending scenes multiple times

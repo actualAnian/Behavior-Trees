@@ -23,7 +23,7 @@ namespace BehaviorTreeWrapper
         }
         public override void OnAgentRemoved()
         {
-            //BehaviorTreeBannerlordWrapper.Instance.DisposeTree(Agent);
+            BehaviorTreeBannerlordWrapper.Instance.DisposeTree(Agent);
         }
     }
 }

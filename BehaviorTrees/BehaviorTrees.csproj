@@ -3,17 +3,18 @@
 	<PropertyGroup>
 		<Version>0.0.1</Version>
 		<TargetFramework>net472</TargetFramework>
-		<Platforms>x64</Platforms>
+		<Platforms>x64;AnyCPU</Platforms>
 		<LangVersion>10.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<ModuleId>$(MSBuildProjectName)</ModuleId>
 		<ModuleName>$(MSBuildProjectName)</ModuleName>
 		<GameFolder>$(BANNERLORD_GAME_DIR)</GameFolder>
 		<Configurations>Debug;Release;aaa</Configurations>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="xcopy /y /d &quot;$(ProjectDir)\\bin\x64\Debug\net472\\BehaviorTree*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;" />
+	  <Exec Command="xcopy /y /d &quot;$(ProjectDir)\\bin\Debug\net472\\BehaviorTree*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;" />
 	</Target>
 
 

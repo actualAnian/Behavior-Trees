@@ -21,6 +21,7 @@ namespace BehaviorTreeWrapper.Tests
         public static new BehaviorTree? BuildTree(object[] objects)
         {
             if (objects[0] is not Agent agent) return null;
+            
             Vec3 position = new(373, 295, 20);
             ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
                 .AddSelector("main")

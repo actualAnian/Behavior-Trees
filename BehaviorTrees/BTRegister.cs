@@ -16,6 +16,13 @@ namespace BehaviorTrees
                 RegisteredBuilders[className] = factory;
             }
         }
+        /// <summary>
+        /// Build the tree, the class needs to be registered through RegisterClass method first.
+        /// </summary>
+        /// <param name="className"></param>
+        /// <param name="args">The arguments the tree needs to be built.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static BehaviorTree? Build(string className, params object[] args)
         {
             if (RegisteredBuilders.TryGetValue(className, out var builder))
