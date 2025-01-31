@@ -15,10 +15,4 @@ namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
             listener = new BannerlordBTListener(subscribesTo, Tree, this);
         }
     }
-    public abstract class BannerlordNoWaitDecorator : BTReturnFalseDecorator
-    {
-        protected BannerlordNoWaitDecorator() : base()
-        {
-        }
-    }
 }

@@ -9,13 +9,6 @@ using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 
 namespace BehaviorTreeWrapper
 {
-    public class TestComponent : AgentComponent
-    {
-        public TestComponent(Agent agent) : base(agent)
-        {
-        }
-    }
-
     public enum SubscriptionPossibilities
     {
         //use BannerlordTickTimedDecorator for OnMissionTick

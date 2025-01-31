@@ -2,7 +2,7 @@
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    internal class WaitNSecondsTickDecorator : BannerlordTickTimedDecorator
+    public class WaitNSecondsTickDecorator : BannerlordTickTimedDecorator
     {
         bool hasBeenNotified = false;
         public WaitNSecondsTickDecorator(double timeToWait ) : base(timeToWait) { }
