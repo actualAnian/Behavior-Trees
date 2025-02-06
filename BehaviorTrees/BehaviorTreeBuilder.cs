@@ -94,7 +94,7 @@ namespace BehaviorTrees
         /// <param name="decorator"> A decorator, accepts both return-false decorators, and await event decorators.</param>
         /// <param name="weight">Weight of the node, useful if it is a child of the RandomSelector, a chance that this child is chosen.</param>
         /// <returns>Returns the builder.</returns>
-        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTEventDecorator
+        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
         {
             Selector selector = new(TreeBeingBuild, new(), decorator, weight);
             _currentNode.AddChild(selector); 
@@ -125,7 +125,7 @@ namespace BehaviorTrees
         /// <param name="decorator">Treats return-false and await event decorators the same way, only looks if the decorator currently return true.</param>
         /// <param name="weight">Weight of the node, useful if it is a child of the RandomSelector, a chance that this child is chosen.</param>
         /// <returns>Returns the builder.</returns>
-        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : BTEventDecorator
+        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
         {
             RandomSelector randomSelector = new(TreeBeingBuild, decorator, new(), weight);
             _currentNode.AddChild(randomSelector);
