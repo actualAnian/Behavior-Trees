@@ -52,6 +52,7 @@ namespace BehaviorTreeWrapper
         private static void RegisterDefaultTrees()
         {
             BTRegister.RegisterClass("PerformAnAttackTree", objects => PerformAnAttackTree.BuildTree(objects));
+            
         }
         internal BehaviorTree? AddBehaviorTree(string treeName, object[] args)
         {
