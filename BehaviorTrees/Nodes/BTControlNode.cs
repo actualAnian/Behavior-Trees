@@ -11,6 +11,13 @@ namespace BehaviorTrees.Nodes
         public List<BTNode> currentlyExecutableChildren = new();
         public List<BTNode> childrenWaiting = new();
         public List<BTNode> childrenWithTasks = new();
+        public BTStatus lastStatus = BTStatus.FinishedWithFalse;
+        public BTStatus ConsumeStatus()
+        {
+            BTStatus status = lastStatus;
+            lastStatus = BTStatus.FinishedWithTrue;
+            return status;
+        }
 
         private readonly AbstractDecorator? _decorator;
         public override AbstractDecorator? Decorator => _decorator;
@@ -56,20 +63,19 @@ namespace BehaviorTrees.Nodes
                 decorators.Add(eventDecorator);
             }
         }
-        public override sealed async Task<bool> Execute(CancellationToken cancellationToken)
-        {
-            alreadyExecutedNodes = 0;
-            BaseTree.CurrentControlNode = this;
-            bool result = await ExecuteImplementation(cancellationToken);
-            RemoveDecorators();
-            tasks = new();
-            decorators = new();
-            childrenWithTasks.Clear();
-            currentlyExecutableChildren.Clear();
-            childrenWaiting.Clear();
-            return result;
-        }
-        protected abstract Task<bool> ExecuteImplementation(CancellationToken cancellationToken);
+        //public override BTNode Execute()
+        //{
+        //    //alreadyExecutedNodes = 0;
+        //    //BaseTree.CurrentControlNode = this;
+        //    return ExecuteImplementation();
+        //    //RemoveDecorators();
+        //    //tasks = new();
+        //    //decorators = new();
+        //    //childrenWithTasks.Clear();
+        //    //currentlyExecutableChildren.Clear();
+        //    //childrenWaiting.Clear();
+        //    //return result;
+        //}
         protected void RemoveDecorator(BTEventDecorator decorator)
         {
             decorator.Remove();

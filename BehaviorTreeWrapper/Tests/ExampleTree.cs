@@ -24,7 +24,7 @@ namespace BehaviorTreeWrapper.Tests
             
             Vec3 position = new(373, 295, 20);
             ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
-                .AddSelector("main")
+                .AddSequence("main")//.AddSelector("main")
                     .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged))
                         .AddTask(new PrintQuickMessageTask("I am spotted"))
                         .Up()

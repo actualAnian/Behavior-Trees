@@ -15,7 +15,7 @@ namespace BehaviorTreeWrapper
 
             args = newArgs;
             Tree = BehaviorTreeBannerlordWrapper.Instance.AddBehaviorTree(treeName, args);
-            Tree?.StartTree();
+            //Tree?.StartTree();
         }
         public void RemoveTree()
         {
@@ -24,6 +24,10 @@ namespace BehaviorTreeWrapper
         public override void OnAgentRemoved()
         {
             BehaviorTreeBannerlordWrapper.Instance.DisposeTree(Agent);
+        }
+        public override void OnTickAsAI(float dt)
+        {
+            base.OnTickAsAI(dt);
         }
     }
 }

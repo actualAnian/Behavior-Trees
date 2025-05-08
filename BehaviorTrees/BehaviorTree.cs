@@ -5,6 +5,12 @@ using System.Threading.Tasks;
 
 namespace BehaviorTrees
 {
+    public enum BTStatus
+    {
+        Running,
+        FinishedWithFalse,
+        FinishedWithTrue,
+    }
     public abstract class BehaviorTree : IDisposable
     {
 
@@ -12,30 +18,41 @@ namespace BehaviorTrees
         private bool _disposed = false;
         private readonly int rootEvaluationDelay = 2000; // miliseconds
 
-        internal BTControlNode CurrentControlNode { get; set; }
-        internal BTControlNode RootNode { get; set; }
+        internal BTNode CurrentNode { get; set; }
+        internal BTNode RootNode { get; set; }
         public BehaviorTree(int rootEvaluationDelay = 2000)
         {
             this.rootEvaluationDelay = rootEvaluationDelay;
         }
-        public void StartTree()
+        public void RunTree()
         {
-            CurrentControlNode = RootNode;
-            _cancellationTokenSource = new CancellationTokenSource();
-            ExecuteNode(_cancellationTokenSource.Token);
-        }
-        private async void ExecuteNode(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
+            if (CurrentNode.Decorator != null && !CurrentNode.Decorator.Evaluate()) return;
+            CurrentNode = CurrentNode.Execute();
+
+            while (CurrentNode != RootNode)
             {
-                try
-                {
-                    await RootNode.Execute(cancellationToken);
-                    await Task.Delay(rootEvaluationDelay);
-                }
-                catch (OperationCanceledException) { }
+                CurrentNode = CurrentNode.Execute();
             }
+            // if running, do nothing
         }
+        //public void StartTree()
+        //{
+        //    CurrentControlNode = RootNode;
+        //    _cancellationTokenSource = new CancellationTokenSource();
+        //    ExecuteNode(_cancellationTokenSource.Token);
+        //}
+        //private async void ExecuteNode(CancellationToken cancellationToken)
+        //{
+        //    while (!cancellationToken.IsCancellationRequested)
+        //    {
+        //        try
+        //        {
+        //            await RootNode.Execute(cancellationToken);
+        //            await Task.Delay(rootEvaluationDelay);
+        //        }
+        //        catch (OperationCanceledException) { }
+        //    }
+        //}
         public void Dispose()
         {
             if (!_disposed)

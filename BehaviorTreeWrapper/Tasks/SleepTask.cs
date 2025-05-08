@@ -1,17 +1,37 @@
 ﻿using BehaviorTrees.Nodes;
-using System.Threading;
-using System.Threading.Tasks;
-
+using System;
 namespace BehaviorTreeWrapper.Tasks
 {
     public class SleepTask : BTTask
     {
-        private readonly int sleepMiliseconds;
-        public SleepTask(int sleepTimeInMiliseconds) { sleepMiliseconds = sleepTimeInMiliseconds; }
-        public override async Task<bool> Execute(CancellationToken cancellationToken)
+        private readonly TimeSpan sleepMiliseconds;
+        public SleepTask(int sleepTimeInMiliseconds) { sleepMiliseconds = new TimeSpan(0, 0, 0, 0, sleepTimeInMiliseconds); }
+
+        private DateTime _lastTime;
+        private bool isExecuting;
+
+        public override BTNode Execute()
         {
-            await Task.Delay(sleepMiliseconds);
-            return true;
+            if (isExecuting)
+            {
+                if (DateTime.Now - _lastTime > sleepMiliseconds)
+                {
+                    isExecuting = false;
+                    Status = BehaviorTrees.BTStatus.FinishedWithTrue;
+                    return Parent;
+                }
+                else
+                {
+                    Status = BehaviorTrees.BTStatus.Running;
+                    return this;
+                }
+            }
+            else
+            {
+                _lastTime = DateTime.Now;
+                Status = BehaviorTrees.BTStatus.Running;
+                return this;
+            }
         }
     }
 }

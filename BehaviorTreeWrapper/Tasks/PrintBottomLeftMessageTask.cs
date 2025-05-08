@@ -9,10 +9,10 @@ namespace BehaviorTreeWrapper.Tasks
     {
         private readonly string message;
         public PrintBottomLeftMessageTask(string message) { this.message = message; }
-        public override async Task<bool> Execute(CancellationToken cancellationToken)
+        public override BTNode Execute()
         {
             InformationManager.DisplayMessage(new(message));
-            return true;
+            return Parent;
         }
     }
 }

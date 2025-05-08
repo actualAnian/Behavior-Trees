@@ -10,9 +10,9 @@ namespace BehaviorTrees.Nodes
         {
             isExecutedListener = listener;
         }
-        public override async Task<bool> Execute(CancellationToken cancellationToken)
+        public override BTNode Execute()
         {
-            return true;
+            return Parent;
         }
     }
 }
