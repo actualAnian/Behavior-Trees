@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using BehaviorTrees.Nodes;
@@ -11,20 +12,34 @@ namespace BehaviorTrees
 
         protected internal AbstractDecorator() {}
         abstract public bool Evaluate();
+        abstract internal bool HandleEvaluation();
     }
-    public abstract class BTEventDecorator : AbstractDecorator, INotifiable
+    public abstract class BTEventDecorator : AbstractDecorator
     {
         protected BTListener listener;
         public abstract void Notify(object[] data);
-        internal protected BehaviorTree Tree { get; set; }
-        public Task<bool> AddListener(CancellationToken cancellationToken)
+        internal virtual void HandleNotification(object[] data)
         {
-            listener.Subscribe(cancellationToken);
-            return listener.Task;
+            Notify(data);
+            NodeBeingDecoracted.Parent.Status = BTStatus.ReceivedEvent;
+            Tree.NodeReceivingEvent = NodeBeingDecoracted;
+            Tree.ShouldRunNextTick = true;
+        }
+        internal protected BehaviorTree Tree { get; set; }
+        public void AddListener()
+        {
+            NodeBeingDecoracted.Parent.Status = BTStatus.WaitingForEvent;
+            listener.Subscribe();
         }
         public void Remove()
         {
             listener.UnSubscribe();
+        }
+        internal override bool HandleEvaluation()
+        {
+            if (Evaluate()) return true;
+            AddListener();
+            return false;
         }
 
         public BTEventDecorator() : base() { }
@@ -32,6 +47,9 @@ namespace BehaviorTrees
     }
     public abstract class BTReturnFalseDecorator : AbstractDecorator
     {
-
+        internal override bool HandleEvaluation()
+        {
+            return Evaluate();
+        }
     }
 }

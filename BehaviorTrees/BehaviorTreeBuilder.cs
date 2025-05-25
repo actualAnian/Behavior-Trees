@@ -38,9 +38,11 @@ namespace BehaviorTrees
         internal BehaviorTreeBuilder(TTree tree)
         {
             TreeBeingBuild = tree;
-            _currentNode = new Sequence(TreeBeingBuild); //@TODO switch to selector
+            _currentNode = new Sequence(TreeBeingBuild, typeof(TTree).Name.ToString()); //@TODO switch to selector
             _previousNodes = new();
             TreeBeingBuild.RootNode = _currentNode;
+            TreeBeingBuild.CurrentNode = _currentNode;
+            _currentNode.Parent = _currentNode;
         }
         private void SetDecorator<DDecorator>(DDecorator decorator) where DDecorator : AbstractDecorator
         {
@@ -64,9 +66,10 @@ namespace BehaviorTrees
         /// <returns>Returns the builder.</returns>
         public BehaviorTreeBuilder<TTree> AddSequence<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
         {
-            Sequence sequence = new(TreeBeingBuild, new(), decorator, weight);
+            Sequence sequence = new(TreeBeingBuild, name, new(), decorator, weight);
             _currentNode.AddChild(sequence);
             _previousNodes.Push(_currentNode);
+            sequence.Parent = _currentNode;
             _currentNode = sequence;
             if (decorator != null) SetDecorator(decorator);
             return this;
@@ -94,16 +97,17 @@ namespace BehaviorTrees
         /// <param name="decorator"> A decorator, accepts both return-false decorators, and await event decorators.</param>
         /// <param name="weight">Weight of the node, useful if it is a child of the RandomSelector, a chance that this child is chosen.</param>
         /// <returns>Returns the builder.</returns>
-        
-        //public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
-        //{
-        //    Selector selector = new(TreeBeingBuild, new(), decorator, weight);
-        //    _currentNode.AddChild(selector); 
-        //    _previousNodes.Push(_currentNode);
-        //    _currentNode = selector;
-        //    if (decorator != null) SetDecorator(decorator);
-        //    return this;
-        //}
+
+        public BehaviorTreeBuilder<TTree> AddSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
+        {
+            Selector selector = new(TreeBeingBuild, name, new(), decorator, weight);
+            _currentNode.AddChild(selector);
+            _previousNodes.Push(_currentNode);
+            selector.Parent = _currentNode;
+            _currentNode = selector;
+            if (decorator != null) SetDecorator(decorator);
+            return this;
+        }
 
         /// <summary>
         /// Adds a selector control node to the tree. The selector moves through all executable (no decorator or decorator returning true) children from left to right, until one of the children return a true.
@@ -114,11 +118,11 @@ namespace BehaviorTrees
         /// <param name="name">A string, used to make the tree more readable.</param>
         /// <param name="weight">Weight of the node, useful if it is a child of the RandomSelector, a chance that this child is chosen.</param>
         /// <returns>Returns the builder.</returns>
-        
-        //public BehaviorTreeBuilder<TTree> AddSelector(string name, int weight = 100)
-        //{
-        //    return AddSelector<BTEventDecorator>(name, null, weight);
-        //}
+
+        public BehaviorTreeBuilder<TTree> AddSelector(string name, int weight = 100)
+        {
+            return AddSelector<BTEventDecorator>(name, null, weight);
+        }
 
         /// <summary>
         /// A random selector control node, chooses which child to execute based on the weight.
@@ -129,16 +133,17 @@ namespace BehaviorTrees
         /// <param name="decorator">Treats return-false and await event decorators the same way, only looks if the decorator currently return true.</param>
         /// <param name="weight">Weight of the node, useful if it is a child of the RandomSelector, a chance that this child is chosen.</param>
         /// <returns>Returns the builder.</returns>
-        
-        //public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
-        //{
-        //    RandomSelector randomSelector = new(TreeBeingBuild, decorator, new(), weight);
-        //    _currentNode.AddChild(randomSelector);
-        //    _previousNodes.Push(_currentNode);
-        //    _currentNode = randomSelector;
-        //    if (decorator != null) SetDecorator(decorator);
-        //    return this;
-        //}
+
+        public BehaviorTreeBuilder<TTree> AddRandomSelector<DDecorator>(string name, DDecorator? decorator = null, int weight = 100) where DDecorator : AbstractDecorator
+        {
+            RandomSelector randomSelector = new(TreeBeingBuild, name, decorator, new(), weight);
+            _currentNode.AddChild(randomSelector);
+            _previousNodes.Push(_currentNode);
+            randomSelector.Parent = _currentNode;
+            _currentNode = randomSelector;
+            if (decorator != null) SetDecorator(decorator);
+            return this;
+        }
 
         /// <summary>
         /// Adds a behavior tree from the register as a node to tree being currently built.
@@ -156,6 +161,7 @@ namespace BehaviorTrees
             if (subTree == null)
                 throw new CanNotCreateSubTreeException(subTreeName);
             subTree.RootNode.weight = weight;
+            subTree.RootNode.Parent = _currentNode;
             _currentNode.AddChild(subTree.RootNode);
             return this;
         }
@@ -180,6 +186,7 @@ namespace BehaviorTrees
         {
             CopyAllInterfacesProperties(task);
             _currentNode.AddChild(task);
+            task.Parent = _currentNode;
             return this;
         }
         private void CopyAllInterfacesProperties<AssignableObject>(AssignableObject node)

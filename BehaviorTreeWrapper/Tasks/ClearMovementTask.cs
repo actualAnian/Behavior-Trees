@@ -13,10 +13,10 @@ namespace BehaviorTreeWrapper.Tasks
         public BTBlackboardValue<AgentNavigator> Navigator { get => _navigator; set => _navigator = value; }
         public ClearMovementTask() : base() { }
 
-        public override BTNode Execute()
+        public override BTTaskStatus Execute()
         {
             Navigator.GetValue().ClearTarget();
-            return Parent;
+            return BTTaskStatus.FinishedWithTrue;
         }
     }
 }

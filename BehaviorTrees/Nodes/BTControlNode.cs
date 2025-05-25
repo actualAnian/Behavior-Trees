@@ -7,29 +7,44 @@ namespace BehaviorTrees.Nodes
     public abstract class BTControlNode : BTNode
     {
         protected int alreadyExecutedNodes = 0;
-        public List<BTNode> allChildren;
-        public List<BTNode> currentlyExecutableChildren = new();
-        public List<BTNode> childrenWaiting = new();
-        public List<BTNode> childrenWithTasks = new();
-        public BTStatus lastStatus = BTStatus.FinishedWithFalse;
-        public BTStatus ConsumeStatus()
+        protected List<BTNode> allChildren;
+        protected List<BTNode> currentlyExecutableChildren = new();
+        protected bool hasRunChild = false;
+        private readonly AbstractDecorator? _decorator;
+        public string Name { get; internal set; }
+        public override AbstractDecorator? Decorator => _decorator;
+        protected List<BTEventDecorator> decorators = new();
+        protected bool IsWaitingASingleTime { get; set; } = false;
+        public bool ResetIfWaiting()
         {
-            BTStatus status = lastStatus;
-            lastStatus = BTStatus.FinishedWithTrue;
-            return status;
+            if (IsWaitingASingleTime)
+            {
+                IsWaitingASingleTime = false;
+                return true;
+            }
+            return false;
+        }
+        public override bool ShouldExitTree()
+        {
+            if (Status == BTStatus.WaitingForEvent) return true;
+            if (IsWaitingASingleTime == true)
+            {
+                IsWaitingASingleTime = false;
+                return true;
+            }
+            return false;
         }
 
-        private readonly AbstractDecorator? _decorator;
-        public override AbstractDecorator? Decorator => _decorator;
-        public List<BTListener> Listeners { get; private set; }
-        protected List<Task<bool>> tasks = new();
-        protected List<BTEventDecorator> decorators = new();
-
-        protected BTControlNode(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
+        protected BTControlNode(BehaviorTree tree, string name, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
         {
             BaseTree = tree;
+            Name = name;
             _decorator = decorator;
             allChildren = children ?? new();
+        }
+        internal void ResetChildren()
+        {
+            allChildren.ForEach(c => c.Status = BTStatus.NotExecuted);
         }
         public bool Evaluate()
         {
@@ -54,40 +69,9 @@ namespace BehaviorTrees.Nodes
             });
             return _cancellationTask;
         }
-        protected void AddTasks(CancellationToken cancellationToken)
-        {
-            foreach (BTNode chi in childrenWithTasks)
-            {
-                if (chi.Decorator == null || chi.Decorator is not BTEventDecorator eventDecorator) continue;
-                tasks.Add(chi.AddDecoratorsListeners(cancellationToken));
-                decorators.Add(eventDecorator);
-            }
-        }
-        //public override BTNode Execute()
-        //{
-        //    //alreadyExecutedNodes = 0;
-        //    //BaseTree.CurrentControlNode = this;
-        //    return ExecuteImplementation();
-        //    //RemoveDecorators();
-        //    //tasks = new();
-        //    //decorators = new();
-        //    //childrenWithTasks.Clear();
-        //    //currentlyExecutableChildren.Clear();
-        //    //childrenWaiting.Clear();
-        //    //return result;
-        //}
         protected void RemoveDecorator(BTEventDecorator decorator)
         {
             decorator.Remove();
-        }
-        internal void RemoveDecorators()
-        {
-            childrenWithTasks.ForEach(child => { if (child.Decorator is not null and BTEventDecorator decorator) { RemoveDecorator(decorator); } });
-        }
-        public void ClearTasks()
-        {
-            decorators.Clear();
-            tasks.Clear();
         }
         protected bool ExecutedAll()
         {

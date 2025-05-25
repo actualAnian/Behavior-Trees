@@ -31,7 +31,7 @@ namespace BehaviorTreeWrapper.Trees
             PerformAnAttackTree? tree = StartBuildingTree(new PerformAnAttackTree(agent))
                 .AddSequence("make_attack")
                     .AddTask(new PlayAnimationTask(attackId))
-                    .AddTask(new SleepTask(sleepMiliseconds))
+                    .AddTask(new SleepTask(new TimeSpan(0, 0, 2)))
                     .Up()
                 .Finish();
             return tree;

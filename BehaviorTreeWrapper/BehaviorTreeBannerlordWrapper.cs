@@ -86,7 +86,7 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed && _missionLogic != null)
             {
-                _missionLogic.trees[agent].Dispose();
+                //_missionLogic.trees[agent].Dispose();
                 _missionLogic.trees.Remove(agent);
             }
         }
@@ -94,10 +94,6 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed)
             {
-                foreach (BehaviorTree tree in CurrentMissionLogic.trees.Values)
-                {
-                    tree.Dispose();
-                }
                 CurrentMissionLogic = null;
                 _disposed = true;
             }

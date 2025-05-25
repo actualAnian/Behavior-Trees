@@ -6,52 +6,123 @@ namespace BehaviorTrees.Nodes
 {
     public class Sequence : BTControlNode
     {
-        public Sequence(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, decorator, children, weight) { }
+        public Sequence(BehaviorTree tree, string name, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, name, decorator, children, weight) { }
 
-        public override BTNode Execute()
+        private void Prepare()
         {
-            BTNode child = allChildren[alreadyExecutedNodes];
-            switch (child.Status)
+            alreadyExecutedNodes = 0;
+            IsWaitingASingleTime = false;
+        }
+        public override BTNode HandleExecute()
+        {
+            switch (Status)
             {
+                case BTStatus.NotExecuted:
+                    Prepare();
+                    Status = BTStatus.Running;
+                    return this;
+
+                case BTStatus.WaitingForEvent:
+                    return this;
+
+                case BTStatus.ReceivedEvent:
+                    if (BaseTree.NodeReceivingEvent!.Decorator!.Evaluate())
+                    {
+                        Status = BTStatus.Running;
+                        RemoveDecorator((BaseTree.NodeReceivingEvent!.Decorator! as BTEventDecorator)!);
+                        return BaseTree.NodeReceivingEvent;
+                    }
+                    else
+                    {
+                        BaseTree.NodeReceivingEvent = null;
+                        Status = BTStatus.WaitingForEvent;
+                        return this;
+                    }
                 case BTStatus.Running:
-                    return child;
-                case BTStatus.FinishedWithTrue:
-                    alreadyExecutedNodes++;
-                    return allChildren[alreadyExecutedNodes];
-                case BTStatus.FinishedWithFalse:
-                    alreadyExecutedNodes = 0;
-                    return Parent;
-                default:
+                    return HandleChild(allChildren[alreadyExecutedNodes]);
+
+                default: // fallback, should never happen
+                    ResetChildren();
                     return Parent;
             }
         }
-        //protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
-        //{
-        //    bool shouldContinue = true;
-        //    foreach (BTNode child in allChildren)
-        //    {
-        //        if (child.Decorator == null)
-        //        {
-        //            shouldContinue = await child.Execute(cancellationToken);
-        //            cancellationToken.ThrowIfCancellationRequested();
-        //            if (!shouldContinue) return false;
-        //        }
-        //        else
-        //        {
-        //            bool evaluate = child.Decorator.Evaluate();
-        //            if (!evaluate && child.Decorator is BTReturnFalseDecorator) return false;
-        //            while (!evaluate && child.Decorator is BTEventDecorator)
-        //            {
-        //                await child.AddDecoratorsListeners(cancellationToken);
-        //                evaluate = child.Decorator.Evaluate();
-        //            }
+        private BTNode? HandleDecorators(BTNode currentChild)
+        {
+            if (currentChild.Decorator is { } decorator && !decorator.Evaluate())
+            {
+                if (decorator is BTEventDecorator)
+                {
+                    AddDecoratorsListeners();
+                    Status = BTStatus.WaitingForEvent;
+                    return this;
+                }
+                else
+                {
+                    Status = BTStatus.FinishedWithFalse;
+                    ResetChildren();
+                    return Parent;
+                }
+            }
+            return null;
+        }
+        private BTNode HandleChild(BTNode currentChild)
+        {
+            switch (currentChild.Status)
+            {
+                case BTStatus.NotExecuted:
+                    BTNode? nextNode = HandleDecorators(currentChild);
+                    if (nextNode == null)
+                    {
+                        hasRunChild = true;
+                        Status = BTStatus.Running;
+                        return currentChild;
+                    }
+                    else return nextNode;
 
-        //            shouldContinue = await child.Execute(cancellationToken);
-        //            cancellationToken.ThrowIfCancellationRequested();
-        //            if (!shouldContinue) return false;
-        //        }
-        //    }
-        //    return true;
-        //}
+                case BTStatus.Running:
+                    Status = BTStatus.Running;
+
+                    if (hasRunChild)
+                    {
+                        hasRunChild = false;
+                        IsWaitingASingleTime = true;
+                        return this;
+                    }
+                    else
+                    {
+                        hasRunChild = true;
+                        return currentChild;
+                    }
+
+                case BTStatus.FinishedWithTrue:
+                    IsWaitingASingleTime = false;
+                    alreadyExecutedNodes++;
+                    if (alreadyExecutedNodes >= allChildren.Count)
+                    {
+                        Status = BTStatus.FinishedWithTrue;
+                        ResetChildren();
+                        return Parent;
+                    }
+                    return allChildren[alreadyExecutedNodes];
+
+                case BTStatus.FinishedWithFalse:
+                    IsWaitingASingleTime = false;
+                    Status = BTStatus.FinishedWithFalse;
+                    ResetChildren();
+                    return Parent;
+
+                case BTStatus.WaitingForEvent:
+                    if (currentChild.Decorator!.Evaluate())
+                    {
+                        Status = BTStatus.Running;
+                        return currentChild;
+                    }
+                    else
+                        return this;
+                default:
+                    ResetChildren();
+                    return Parent;
+            }
+        }
     }
 }

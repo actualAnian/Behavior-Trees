@@ -2,6 +2,7 @@
 using System.Threading;
 using BehaviorTrees.Nodes;
 using TaleWorlds.Library;
+using BehaviorTrees;
 
 namespace BehaviorTreeWrapper.Tasks
 {
@@ -9,10 +10,10 @@ namespace BehaviorTreeWrapper.Tasks
     {
         private readonly string message;
         public PrintBottomLeftMessageTask(string message) { this.message = message; }
-        public override BTNode Execute()
+        public override BTTaskStatus Execute()
         {
             InformationManager.DisplayMessage(new(message));
-            return Parent;
+            return BTTaskStatus.FinishedWithTrue;
         }
     }
 }

@@ -19,11 +19,11 @@ namespace BehaviorTreeWrapper.Tasks
         Vec3 moveTo;
         public MoveToPlaceTask(Vec3 moveTo) : base() { this.moveTo = moveTo; }
 
-        public override BTNode Execute()
+        public override BTTaskStatus Execute()
         {
             WorldPosition position = new WorldPosition(Mission.Current.Scene, moveTo);
             Navigator.GetValue().SetTargetFrame(position, Agent.GetValue().Frame.rotation.f.AsVec2.RotationInRadians);
-            return Parent;
+            return BTTaskStatus.FinishedWithTrue;
         }
     }
 }
