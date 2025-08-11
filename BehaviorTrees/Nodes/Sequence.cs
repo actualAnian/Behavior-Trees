@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BehaviorTrees.Nodes
 {
@@ -42,6 +40,7 @@ namespace BehaviorTrees.Nodes
                     return HandleChild(allChildren[alreadyExecutedNodes]);
 
                 default: // fallback, should never happen
+                    BTRegister.Logger?.LogMessage($"Error, the Sequence {Name} is in a {Status} state, this should never happen!");
                     ResetChildren();
                     return Parent;
             }

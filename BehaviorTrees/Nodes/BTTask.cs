@@ -11,7 +11,7 @@ namespace BehaviorTrees.Nodes
             isExecutedListener = listener;
         }
         public abstract BTTaskStatus Execute();
-        public override BTNode HandleExecute()
+        public override sealed BTNode HandleExecute()
         {
             if (Decorator != null && !Decorator.Evaluate())
             {

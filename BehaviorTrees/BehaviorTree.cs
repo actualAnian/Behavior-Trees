@@ -1,11 +1,10 @@
 ﻿using BehaviorTrees.Nodes;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace BehaviorTrees
 {
-    public enum BTStatus
+    internal enum BTStatus
     {
         Running,
         FinishedWithFalse,
@@ -22,18 +21,17 @@ namespace BehaviorTrees
     }
     public abstract class BehaviorTree
     {
-        private CancellationTokenSource _cancellationTokenSource;
         private bool _disposed = false;
-        public readonly int rootEvaluationDelay = 2000; // miliseconds
+        public readonly int _rootEvaluationDelay = 2000; // miliseconds
 
-        public bool ShouldRunNextTick { get; set; }
+        public bool ShouldRunNextTick { get; internal set; }
         internal BTNode CurrentNode { get; set; }
         internal BTNode RootNode { get; set; }
         internal BTNode? NodeReceivingEvent { get; set; }
         internal List<BTControlNode> ControlNodes { get; } = new();
         public BehaviorTree(int rootEvaluationDelay = 2000)
         {
-            this.rootEvaluationDelay = rootEvaluationDelay;
+            _rootEvaluationDelay = rootEvaluationDelay;
         }
         public void RunTree()
         {
@@ -56,13 +54,6 @@ namespace BehaviorTrees
                 CurrentNode.Status = BTStatus.NotExecuted;
             }
         }
-        //public void Dispose()
-        //{
-        //    if (!_disposed)
-        //    {
-        //        _disposed = true;
-        //    }
-        //}
         protected static BehaviorTreeBuilder<TTree> StartBuildingTree<TTree>(TTree tree) where TTree : BehaviorTree
         {
             BehaviorTreeBuilder<TTree> newBuilder = new(tree);

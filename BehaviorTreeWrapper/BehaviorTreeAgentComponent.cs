@@ -17,8 +17,9 @@ namespace BehaviorTreeWrapper
 
             args = newArgs;
             Tree = BehaviorTreeBannerlordWrapper.Instance.AddBehaviorTree(treeName, args);
+            if (Tree == null) return;
             Random random = new();
-            timeSinceLastEvaluation = (float)(random.NextDouble() * (Tree.rootEvaluationDelay / 1000f)); // randomize the first tick to avoid all agents ticking at the same time
+            timeSinceLastEvaluation = (float)(random.NextDouble() * (Tree._rootEvaluationDelay / 1000f)); // randomize the first tick to avoid all agents ticking at the same time
         }
         public override void OnAgentRemoved()
         {
@@ -28,7 +29,7 @@ namespace BehaviorTreeWrapper
         {
             if (Tree == null) return;
             timeSinceLastEvaluation += dt;
-            if (Tree.rootEvaluationDelay / 1000 < timeSinceLastEvaluation || Tree.ShouldRunNextTick)
+            if (Tree._rootEvaluationDelay / 1000 < timeSinceLastEvaluation || Tree.ShouldRunNextTick)
             {
                 Tree.RunTree();
                 timeSinceLastEvaluation = 0f;

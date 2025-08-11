@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BehaviorTrees.Nodes
@@ -51,7 +52,6 @@ namespace BehaviorTrees.Nodes
                         RemoveDecorators();
                         childrenWithTasks.Remove(BaseTree.NodeReceivingEvent);
                         currentlyExecutableChildren.Add(BaseTree.NodeReceivingEvent);
-                        alreadyExecutedNodes++;
                         lastChild = BaseTree.NodeReceivingEvent;
                         return BaseTree.NodeReceivingEvent;
                     }
@@ -65,6 +65,7 @@ namespace BehaviorTrees.Nodes
                     if (alreadyExecutedNodes >= allChildren.Count)
                     {
                         Status = BTStatus.FinishedWithFalse;
+                        ResetChildren();
                         return Parent;
                     }
                     if (currentlyExecutableChildren.Count == 0)
@@ -89,43 +90,7 @@ namespace BehaviorTrees.Nodes
                     {
                         if (lastChild != null)
                         {
-                            BTStatus status = lastChild.Status;
-
-                            switch (lastChild.Status)
-                            {
-
-                                case BTStatus.FinishedWithTrue:
-                                    IsWaitingASingleTime = false;
-                                    Status = BTStatus.FinishedWithTrue;
-                                    ResetChildren();
-                                    lastChild = null;
-                                    return Parent;
-
-                                case BTStatus.FinishedWithFalse:
-                                    IsWaitingASingleTime = false;
-                                    alreadyExecutedNodes++;
-                                    currentlyExecutableChildren.Remove(lastChild);
-                                    lastChild = null;
-                                    return this;
-
-                                case BTStatus.Running:
-                                    Status = BTStatus.Running;
-                                    if (hasRunChild)
-                                    {
-                                        hasRunChild = false;
-                                        IsWaitingASingleTime = true;
-                                        return this;
-                                    }
-                                    else
-                                    {
-                                        hasRunChild = true;
-                                        return lastChild;
-                                    }
-
-                                default:
-                                    Status = BTStatus.Running;
-                                    return this;
-                            }
+                            return HandleChild();
                         }
                         else
                         {
@@ -135,10 +100,51 @@ namespace BehaviorTrees.Nodes
                         }
                     }
                 default: // fallback, should never happen
+                    BTRegister.Logger?.LogMessage($"Error, the Selector {Name} is in a {Status} state, this should never happen!");
                     ResetChildren();
                     return Parent;
             }
         }
+
+        private BTNode HandleChild()
+        {
+            switch (lastChild!.Status)
+            {
+                case BTStatus.FinishedWithTrue:
+                    IsWaitingASingleTime = false;
+                    Status = BTStatus.FinishedWithTrue;
+                    ResetChildren();
+                    lastChild = null;
+                    return Parent;
+
+                case BTStatus.FinishedWithFalse:
+                    IsWaitingASingleTime = false;
+                    alreadyExecutedNodes++;
+                    currentlyExecutableChildren.Remove(lastChild);
+                    lastChild = null;
+                    return this;
+
+                case BTStatus.Running:
+                    Status = BTStatus.Running;
+                    if (hasRunChild)
+                    {
+                        hasRunChild = false;
+                        IsWaitingASingleTime = true;
+                        return this;
+                    }
+                    else
+                    {
+                        hasRunChild = true;
+                        return lastChild;
+                    }
+
+                default:
+                    Status = BTStatus.Running;
+                    return this;
+            }
+
+        }
+
         internal void RemoveDecorators()
         {
             childrenWithTasks.ForEach(child => { if (child.Decorator is not null and BTEventDecorator decorator) { RemoveDecorator(decorator); } });

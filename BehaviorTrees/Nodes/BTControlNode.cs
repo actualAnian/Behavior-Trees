@@ -13,16 +13,14 @@ namespace BehaviorTrees.Nodes
         private readonly AbstractDecorator? _decorator;
         public string Name { get; internal set; }
         public override AbstractDecorator? Decorator => _decorator;
-        protected List<BTEventDecorator> decorators = new();
         protected bool IsWaitingASingleTime { get; set; } = false;
-        public bool ResetIfWaiting()
+
+        protected BTControlNode(BehaviorTree tree, string name, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
         {
-            if (IsWaitingASingleTime)
-            {
-                IsWaitingASingleTime = false;
-                return true;
-            }
-            return false;
+            BaseTree = tree;
+            Name = name;
+            _decorator = decorator;
+            allChildren = children ?? new();
         }
         public override bool ShouldExitTree()
         {
@@ -35,20 +33,9 @@ namespace BehaviorTrees.Nodes
             return false;
         }
 
-        protected BTControlNode(BehaviorTree tree, string name, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(weight)
-        {
-            BaseTree = tree;
-            Name = name;
-            _decorator = decorator;
-            allChildren = children ?? new();
-        }
         internal void ResetChildren()
         {
             allChildren.ForEach(c => c.Status = BTStatus.NotExecuted);
-        }
-        public bool Evaluate()
-        {
-            return Decorator == null || Decorator.Evaluate();
         }
         internal void AddChild(BTNode child)
         {
@@ -58,16 +45,6 @@ namespace BehaviorTrees.Nodes
         {
             allChildren.Add(nextNode);
             return this;
-        }
-        Task<bool> _cancellationTask;
-        protected Task<bool> GetCancellationTask(CancellationToken cancellationToken)
-        {
-            _cancellationTask ??= Task.Run(() =>
-            {
-                cancellationToken.WaitHandle.WaitOne();
-                return false;
-            });
-            return _cancellationTask;
         }
         protected void RemoveDecorator(BTEventDecorator decorator)
         {

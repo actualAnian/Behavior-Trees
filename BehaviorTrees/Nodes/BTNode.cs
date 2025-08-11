@@ -17,7 +17,7 @@ namespace BehaviorTrees.Nodes
                 return null;
             }
         }
-        public BTStatus Status { get; set; } = BTStatus.NotExecuted;
+        internal BTStatus Status { get; set; } = BTStatus.NotExecuted;
         protected BTNode(int weight = 100) {this.weight = weight; }
         public abstract BTNode HandleExecute();// { return this; }
         public virtual bool ShouldExitTree() { return false; }

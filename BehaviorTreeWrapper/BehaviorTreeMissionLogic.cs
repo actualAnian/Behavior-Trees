@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TaleWorlds.Core;
 using System.Linq;
 using BehaviorTrees;
-using BehaviorTreeWrapper.Trees;
 using TaleWorlds.Library;
 using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 
