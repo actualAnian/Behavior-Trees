@@ -21,11 +21,15 @@ namespace BehaviorTreeWrapper.Tasks
         }
         BTBlackboardValue<Agent> agent;
         public BTBlackboardValue<Agent> Agent { get => agent; set => agent = value; }
-
-        public override async Task<bool> Execute(CancellationToken cancellationToken)
+        public override BTTaskStatus Execute()
         {
             Agent.GetValue().SetActionChannel(0, ActionIndexCache.Create(actionId), true);
-            return true;
+            return BTTaskStatus.FinishedWithTrue;
         }
+        //public override async Task<bool> Execute(CancellationToken cancellationToken)
+        //{
+        //    Agent.GetValue().SetActionChannel(0, ActionIndexCache.Create(actionId), true);
+        //    return true;
+        //}
     }
 }

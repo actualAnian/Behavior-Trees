@@ -7,13 +7,13 @@ namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
     {
         // Subscribes to: SubscriptionPossibilities.OnMissionTick
         public double SecondsTillEvent { get; }
-        internal BannerlordBTTickListener(double secondsTillEvent, BehaviorTree tree, INotifiable notifies) : base(tree, notifies)
+        internal BannerlordBTTickListener(double secondsTillEvent, BehaviorTree tree, BTEventDecorator notifies) : base(tree, notifies)
         {
             SecondsTillEvent = secondsTillEvent;
         }
-        public override void Subscribe(CancellationToken cancellationToken)
+        public override void Subscribe()
         {
-            base.Subscribe(cancellationToken);
+            base.Subscribe();
             BehaviorTreeBannerlordWrapper.Instance.Subscribe(this);
         }
         public override void UnSubscribe()

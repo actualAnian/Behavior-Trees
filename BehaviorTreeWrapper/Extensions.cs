@@ -1,7 +1,5 @@
 ﻿using TaleWorlds.MountAndBlade;
 using BehaviorTrees;
-using TaleWorlds.Library;
-using System.Linq;
 
 namespace BehaviorTreeWrapper
 {

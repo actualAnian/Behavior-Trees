@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-	    <Version>0.0.1</Version>
+	    <Version>1.0.0</Version>
 	    <TargetFramework>net472</TargetFramework>
 	    <Platforms>x64;AnyCPU</Platforms>
 	    <LangVersion>10.0</LangVersion>
@@ -34,7 +34,7 @@
   </ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTrees.*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\Alliance\bin\Win64_Shipping_Client&quot;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTreeWrapper.dll&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\Alliance\bin\Win64_Shipping_Client&quot;&#xD;&#xA;" />
+    <Exec Command="xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTrees.*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTreeWrapper.*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;&#xD;&#xA;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTrees.*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\Alliance.SP\bin\Win64_Shipping_Client&quot;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTreeWrapper.*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\Alliance.SP\bin\Win64_Shipping_Client&quot;&#xD;&#xA;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTrees.*&quot; &quot;C:\Users\Damian\Bannerlord Mods\RealmsForgotten\RealmsForgottenMain\bin\x64\Debug\net472&quot;&#xD;&#xA;xcopy /y /d &quot;$(ProjectDir)\bin\\Debug\net472\\BehaviorTreeWrapper.*&quot; &quot;C:\Users\Damian\Bannerlord Mods\RealmsForgotten\RealmsForgottenMain\bin\x64\Debug\net472&quot;&#xD;&#xA;" />
   </Target>
 
 </Project>

@@ -25,6 +25,7 @@ namespace BehaviorTreeWrapper.Tests
             Vec3 position = new(373, 295, 20);
             ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
                 .AddSelector("main")
+                    //.AddTask(new PrintQuickMessageFalseTask("Begin the tree!"))
                     .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged))
                         .AddTask(new PrintQuickMessageTask("I am spotted"))
                         .Up()
@@ -34,6 +35,9 @@ namespace BehaviorTreeWrapper.Tests
                         .Up()
                     .AddSequence("moved", new InPositionDecorator(position))
                         .AddTask(new ClearMovementTask())
+                        .Up()
+                    .AddSequence("moved", new WaitNSecondsTickDecorator(5))
+                        .AddTask(new PrintQuickMessageTask("5 seconds passed"))
                         .Up()
                 .Finish();
             return tree;

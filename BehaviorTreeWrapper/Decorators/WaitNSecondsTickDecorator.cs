@@ -1,20 +1,30 @@
 ﻿using BehaviorTreeWrapper.AbstractDecoratorsListeners;
+using System;
 
 namespace BehaviorTreeWrapper.Decorators
 {
     public class WaitNSecondsTickDecorator : BannerlordTickTimedDecorator
     {
-        bool hasBeenNotified = false;
-        public WaitNSecondsTickDecorator(double timeToWait ) : base(timeToWait) { }
+        private readonly TimeSpan waitSeconds;
+        private DateTime? _lastTime;
+        public WaitNSecondsTickDecorator(double timeToWait) : base(timeToWait)
+        {
+            waitSeconds = TimeSpan.FromSeconds(timeToWait);
+        }
         public override bool Evaluate()
         {
-            if (hasBeenNotified)
+            if (_lastTime == null)
             {
-                hasBeenNotified = false;
+                _lastTime = DateTime.Now;
+                return false;
+            }
+            if (DateTime.Now - _lastTime > waitSeconds)
+            {
+                _lastTime = null;
                 return true;
             }
             else return false;
         }
-        public override void Notify(object[] data) { hasBeenNotified = true; }
+        public override void Notify(object[] data) { }
     }
 }

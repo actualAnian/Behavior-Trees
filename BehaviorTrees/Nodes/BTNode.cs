@@ -7,6 +7,7 @@ namespace BehaviorTrees.Nodes
 {
     public abstract class BTNode
     {
+        public BTNode Parent; // set up while building the tree
         protected BehaviorTree BaseTree { get; set; }
         public int weight;
         public virtual AbstractDecorator? Decorator
@@ -16,11 +17,14 @@ namespace BehaviorTrees.Nodes
                 return null;
             }
         }
-        protected BTNode(int weight = 100) { this.weight = weight; }
-        public virtual async Task<bool> Execute(CancellationToken cancellationToken) { return true; }
-        public Task<bool> AddDecoratorsListeners(CancellationToken cancellationToken)
+        internal BTStatus Status { get; set; } = BTStatus.NotExecuted;
+        protected BTNode(int weight = 100) {this.weight = weight; }
+        public abstract BTNode HandleExecute();// { return this; }
+        public virtual bool ShouldExitTree() { return false; }
+
+        public void AddDecoratorsListeners()
         {
-            return ((BTEventDecorator)Decorator).AddListener(cancellationToken);
+            ((BTEventDecorator)Decorator).AddListener();
         }
     }
 }

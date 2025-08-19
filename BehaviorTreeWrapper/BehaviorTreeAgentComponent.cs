@@ -1,5 +1,6 @@
 ﻿using BehaviorTrees;
 using System;
+using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper
@@ -7,6 +8,7 @@ namespace BehaviorTreeWrapper
     public class BehaviorTreeAgentComponent : AgentComponent
     {
         BehaviorTree? Tree { get; set; }
+        float timeSinceLastEvaluation;
         public BehaviorTreeAgentComponent(Agent agent, string treeName, params object[] args) : base(agent)
         {
             object[] newArgs = new object[args.Length + 1];
@@ -15,15 +17,23 @@ namespace BehaviorTreeWrapper
 
             args = newArgs;
             Tree = BehaviorTreeBannerlordWrapper.Instance.AddBehaviorTree(treeName, args);
-            Tree?.StartTree();
-        }
-        public void RemoveTree()
-        {
-            //@TODO
+            if (Tree == null) return;
+            Random random = new();
+            timeSinceLastEvaluation = (float)(random.NextDouble() * (Tree._rootEvaluationDelay / 1000f)); // randomize the first tick to avoid all agents ticking at the same time
         }
         public override void OnAgentRemoved()
         {
             BehaviorTreeBannerlordWrapper.Instance.DisposeTree(Agent);
+        }
+        public override void OnTickAsAI(float dt)
+        {
+            if (Tree == null) return;
+            timeSinceLastEvaluation += dt;
+            if (Tree._rootEvaluationDelay / 1000 < timeSinceLastEvaluation || Tree.ShouldRunNextTick)
+            {
+                Tree.RunTree();
+                timeSinceLastEvaluation = 0f;
+            }
         }
     }
 }

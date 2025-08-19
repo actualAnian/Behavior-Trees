@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BehaviorTrees.Nodes
 {
@@ -9,29 +7,69 @@ namespace BehaviorTrees.Nodes
     internal class RandomSelector : BTControlNode
     {
         private readonly Random random = new();
-        public RandomSelector(BehaviorTree tree, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(tree, decorator, children, weight)
+        private BTNode? lastChild;
+        public RandomSelector(BehaviorTree tree, string name, AbstractDecorator? decorator = null, List<BTNode>? children = null, int weight = 100) : base(tree, name, decorator, children, weight)
         {
         }
-        protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
+        public override BTNode HandleExecute()
         {
-            int totalWeight = 0;
-            List<BTNode> validChildren = new();
-            foreach (BTNode child in allChildren)
+            if (lastChild != null)
             {
-                if (child.Decorator?.Evaluate() == false) continue;
-                totalWeight += child.weight;
-                validChildren.Add(child);
-            }
-            int randomNumber = random.Next(totalWeight);
-            foreach (BTNode child in validChildren)
-            {
-                randomNumber -= child.weight;
-                if (randomNumber < 0)
+                switch (lastChild.Status)
                 {
-                    return await child.Execute(cancellationToken);
+                    case BTStatus.FinishedWithTrue:
+                        lastChild = null;
+                        IsWaitingASingleTime = false;
+                        Status = BTStatus.FinishedWithTrue;
+                        return Parent;
+                    case BTStatus.FinishedWithFalse:
+                        lastChild = null;
+                        IsWaitingASingleTime = false;
+                        Status = BTStatus.FinishedWithFalse;
+                        return Parent;
+                    case BTStatus.Running:
+                        Status = BTStatus.Running;
+                        if (hasRunChild)
+                        {
+                            hasRunChild = false;
+                            IsWaitingASingleTime = true;
+                            return this;
+                        }
+                        else
+                        {
+                            hasRunChild = true;
+                            return lastChild;
+                        }
+                    default: // fallback
+                        Status = BTStatus.Running;
+                        return this;
                 }
+
             }
-            return false; // fallback (shouldn't reach here)
+            else
+            {
+                int totalWeight = 0;
+                List<BTNode> validChildren = new();
+                foreach (BTNode child in allChildren)
+                {
+                    if (child.Decorator?.Evaluate() == false) continue;
+                    totalWeight += child.weight;
+                    validChildren.Add(child);
+                }
+                int randomNumber = random.Next(totalWeight);
+                foreach (BTNode child in validChildren)
+                {
+                    randomNumber -= child.weight;
+                    if (randomNumber < 0)
+                    {
+                        hasRunChild = true;
+                        lastChild = child;
+                        return child;
+                    }
+                }
+                return Parent; // fallback (shouldn't reach here)
+            }
+
         }
     }
 }

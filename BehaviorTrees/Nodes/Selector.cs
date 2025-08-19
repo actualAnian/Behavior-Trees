@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BehaviorTrees.Nodes
 {
     public class Selector : BTControlNode
     {
-        public Selector(BehaviorTree tree, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, decorator, children, weight) { }
-        protected override async Task<bool> ExecuteImplementation(CancellationToken cancellationToken)
+        public Selector(BehaviorTree tree, string name, List<BTNode>? children = null, AbstractDecorator? decorator = null, int weight = 100) : base(tree, name, decorator, children, weight) { }
+        private BTNode? lastChild;
+        protected List<BTNode> childrenWithTasks = new();
+        private bool Prepare()
         {
+            alreadyExecutedNodes = 0;
+            currentlyExecutableChildren = new();
+            childrenWithTasks = new();
             foreach (BTNode child in allChildren)
             {
                 if (child.Decorator == null) currentlyExecutableChildren.Add(child);
@@ -16,54 +21,133 @@ namespace BehaviorTrees.Nodes
                 {
                     if (child.Decorator.Evaluate()) currentlyExecutableChildren.Add(child);
                     else if (child.Decorator is BTEventDecorator) childrenWithTasks.Add(child);
+                    else alreadyExecutedNodes += 1;
                 }
             }
-            bool shouldStop = false;
-            foreach (var child in currentlyExecutableChildren)
+            IsWaitingASingleTime = false;
+            if (currentlyExecutableChildren.Count == 0 && childrenWithTasks.Count == 0)
             {
-                shouldStop = await child.Execute(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (shouldStop) return true;
-                alreadyExecutedNodes += 1;
+                Status = BTStatus.FinishedWithFalse;
+                return false;
             }
-            if (childrenWithTasks.Count == 0) return false;
-            AddTasks(cancellationToken);
-            while (!ExecutedAll())
+            Status = BTStatus.Running;
+            return true;
+        }
+        public override BTNode HandleExecute()
+        {            
+            switch (Status)
             {
-                currentlyExecutableChildren = new();
-                if (childrenWithTasks.Count > 0)
-                {
-                    List<BTEventDecorator> decoratorsList = new(decorators);
-                    List<Task<bool>> tasksList = new(tasks)
+                case BTStatus.NotExecuted:
+                    bool shouldContinue = Prepare();
+                    if (shouldContinue) return this;
+                    else return Parent;
+
+                case BTStatus.WaitingForEvent:
+                    return this;
+
+                case BTStatus.ReceivedEvent:
+                    if (BaseTree.NodeReceivingEvent!.Decorator!.Evaluate())
                     {
-                        GetCancellationTask(cancellationToken)
-                    };
-                    Task<bool> completedTask = await Task.WhenAny(tasksList);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    int completedIndex = tasks.IndexOf(completedTask);
-                    if (!completedTask.Result) return false;
-                    BTEventDecorator decoratorCalled = decoratorsList[completedIndex];
-                    BTNode child = decoratorCalled.NodeBeingDecoracted;
-                    if (decoratorCalled.Evaluate())
-                    {
-                        shouldStop = await child.Execute(cancellationToken);
-                        cancellationToken.ThrowIfCancellationRequested();
+                        Status = BTStatus.Running;
+                        RemoveDecorators();
+                        childrenWithTasks.Remove(BaseTree.NodeReceivingEvent);
+                        currentlyExecutableChildren.Add(BaseTree.NodeReceivingEvent);
+                        lastChild = BaseTree.NodeReceivingEvent;
+                        return BaseTree.NodeReceivingEvent;
                     }
                     else
                     {
-                        lock (tasks)
+                        BaseTree.NodeReceivingEvent = null;
+                        Status = BTStatus.WaitingForEvent;
+                        return this;
+                    }
+                case BTStatus.Running:
+                    if (alreadyExecutedNodes >= allChildren.Count)
+                    {
+                        Status = BTStatus.FinishedWithFalse;
+                        ResetChildren();
+                        return Parent;
+                    }
+                    if (currentlyExecutableChildren.Count == 0)
+                    {
+                        foreach (BTNode node in childrenWithTasks)
                         {
-                            tasks.RemoveAt(completedIndex);
-                            RemoveDecorator(decoratorCalled);
-                            decorators.RemoveAt(completedIndex);
-                            tasks.Add(child.AddDecoratorsListeners(cancellationToken));
-                            decorators.Add((BTEventDecorator)child.Decorator);
+                            if (node.Decorator!.Evaluate())
+                            {
+                                lastChild = node;
+                                Status = BTStatus.Running;
+                                return this;
+                            }
+                            else //node.Decorator must be BTEventDecorator
+                            {
+                                node.AddDecoratorsListeners();
+                                Status = BTStatus.WaitingForEvent;
+                            }
+                        }
+                        return this;
+                    }
+                    else
+                    {
+                        if (lastChild != null)
+                        {
+                            return HandleChild();
+                        }
+                        else
+                        {
+                            lastChild = currentlyExecutableChildren.First();
+                            hasRunChild = true;
+                            return lastChild;
                         }
                     }
-                    if (shouldStop) return true;
-                }
+                default: // fallback, should never happen
+                    BTRegister.Logger?.LogMessage($"Error, the Selector {Name} is in a {Status} state, this should never happen!");
+                    ResetChildren();
+                    return Parent;
             }
-            return false;
+        }
+
+        private BTNode HandleChild()
+        {
+            switch (lastChild!.Status)
+            {
+                case BTStatus.FinishedWithTrue:
+                    IsWaitingASingleTime = false;
+                    Status = BTStatus.FinishedWithTrue;
+                    ResetChildren();
+                    lastChild = null;
+                    return Parent;
+
+                case BTStatus.FinishedWithFalse:
+                    IsWaitingASingleTime = false;
+                    alreadyExecutedNodes++;
+                    currentlyExecutableChildren.Remove(lastChild);
+                    lastChild = null;
+                    return this;
+
+                case BTStatus.Running:
+                    Status = BTStatus.Running;
+                    if (hasRunChild)
+                    {
+                        hasRunChild = false;
+                        IsWaitingASingleTime = true;
+                        return this;
+                    }
+                    else
+                    {
+                        hasRunChild = true;
+                        return lastChild;
+                    }
+
+                default:
+                    Status = BTStatus.Running;
+                    return this;
+            }
+
+        }
+
+        internal void RemoveDecorators()
+        {
+            childrenWithTasks.ForEach(child => { if (child.Decorator is not null and BTEventDecorator decorator) { RemoveDecorator(decorator); } });
         }
     }
 }

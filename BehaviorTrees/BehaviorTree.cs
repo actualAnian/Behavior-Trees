@@ -1,47 +1,57 @@
 ﻿using BehaviorTrees.Nodes;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace BehaviorTrees
 {
-    public abstract class BehaviorTree : IDisposable
+    internal enum BTStatus
     {
-
-        private CancellationTokenSource _cancellationTokenSource;
+        Running,
+        FinishedWithFalse,
+        FinishedWithTrue,
+        WaitingForEvent,
+        ReceivedEvent,
+        NotExecuted
+    }
+    public enum BTTaskStatus
+    {
+        Running,
+        FinishedWithFalse,
+        FinishedWithTrue,
+    }
+    public abstract class BehaviorTree
+    {
         private bool _disposed = false;
-        private readonly int rootEvaluationDelay = 2000; // miliseconds
+        public readonly int _rootEvaluationDelay = 2000; // miliseconds
 
-        internal BTControlNode CurrentControlNode { get; set; }
-        internal BTControlNode RootNode { get; set; }
+        public bool ShouldRunNextTick { get; internal set; }
+        internal BTNode CurrentNode { get; set; }
+        internal BTNode RootNode { get; set; }
+        internal BTNode? NodeReceivingEvent { get; set; }
+        internal List<BTControlNode> ControlNodes { get; } = new();
         public BehaviorTree(int rootEvaluationDelay = 2000)
         {
-            this.rootEvaluationDelay = rootEvaluationDelay;
+            _rootEvaluationDelay = rootEvaluationDelay;
         }
-        public void StartTree()
+        public void RunTree()
         {
-            CurrentControlNode = RootNode;
-            _cancellationTokenSource = new CancellationTokenSource();
-            ExecuteNode(_cancellationTokenSource.Token);
-        }
-        private async void ExecuteNode(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
+            if (CurrentNode.Status == BTStatus.NotExecuted) // will only be hit when the tree is in root
+                CurrentNode.HandleExecute();
+            if (CurrentNode.ShouldExitTree())
+                return;
+            do
             {
-                try
-                {
-                    await RootNode.Execute(cancellationToken);
-                    await Task.Delay(rootEvaluationDelay);
-                }
-                catch (OperationCanceledException) { }
-            }
-        }
-        public void Dispose()
-        {
-            if (!_disposed)
+                CurrentNode = CurrentNode.HandleExecute();
+
+                if (CurrentNode.ShouldExitTree())
+                    return;
+
+            } while (CurrentNode != RootNode);
+
+            if (CurrentNode == RootNode && RootNode is BTControlNode controlRoot)
             {
-                _cancellationTokenSource?.Cancel();
-                _disposed = true;
+                controlRoot.ResetChildren();
+                CurrentNode.Status = BTStatus.NotExecuted;
             }
         }
         protected static BehaviorTreeBuilder<TTree> StartBuildingTree<TTree>(TTree tree) where TTree : BehaviorTree

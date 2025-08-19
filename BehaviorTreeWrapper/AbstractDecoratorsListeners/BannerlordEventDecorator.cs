@@ -1,5 +1,4 @@
 ﻿using BehaviorTrees;
-using BehaviorTreeWrapper.Decorators;
 
 namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
 {

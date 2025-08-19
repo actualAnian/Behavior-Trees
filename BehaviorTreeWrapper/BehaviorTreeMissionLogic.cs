@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TaleWorlds.Core;
 using System.Linq;
 using BehaviorTrees;
-using BehaviorTreeWrapper.Trees;
 using TaleWorlds.Library;
 using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 
@@ -53,7 +52,7 @@ namespace BehaviorTreeWrapper
         }
         public void UnSubscribe(BannerlordBTListener listener)
         {
-            listener.NotifyWithCancel();
+            //listener.NotifyWithCancel();
             actions[listener.SubscribesTo].Remove(listener);
         }
         public void Subscribe(BannerlordBTTickListener listener)
@@ -70,7 +69,6 @@ namespace BehaviorTreeWrapper
                     break;
                 }
             }
-            listener.NotifyWithCancel();
         }
         public List<BannerlordBTListener> GetAllListeners()
         {
@@ -94,7 +92,10 @@ namespace BehaviorTreeWrapper
 
                 if (elapsedTime >= listener.SecondsTillEvent)
                 {
+                    elapsedTime = 0;
+                    tickListeners[i] = (listener, elapsedTime);
                     listener.Notify(toSend);
+                    if (tickListeners.Count == 0) return;
                 }
                 else
                     tickListeners[i] = (listener, elapsedTime);

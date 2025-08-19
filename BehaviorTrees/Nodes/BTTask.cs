@@ -10,9 +10,35 @@ namespace BehaviorTrees.Nodes
         {
             isExecutedListener = listener;
         }
-        public override async Task<bool> Execute(CancellationToken cancellationToken)
+        public abstract BTTaskStatus Execute();
+        public override sealed BTNode HandleExecute()
         {
-            return true;
+            if (Decorator != null && !Decorator.Evaluate())
+            {
+                if (Decorator is BTEventDecorator)
+                {
+                    Status = BTStatus.WaitingForEvent;
+                }
+                else
+                {
+                    Status = BTStatus.FinishedWithFalse;
+                }
+                Status = BTStatus.Running;
+                return this;
+            }
+            switch (Execute())
+            {
+                case BTTaskStatus.Running:
+                    Status = BTStatus.Running;
+                    break;
+                case BTTaskStatus.FinishedWithFalse:
+                    Status = BTStatus.FinishedWithFalse;
+                    break;
+                case BTTaskStatus.FinishedWithTrue:
+                    Status = BTStatus.FinishedWithTrue;
+                    break;
+            }
+            return Parent;
         }
     }
 }

@@ -8,6 +8,17 @@ namespace BehaviorTrees
 {
     public static class BTRegister
     {
+        public static ILogger? Logger { get; private set; }
+        
+        /// <summary>
+        /// add a logger to the BTRegister, this logger will be used to log messages from the behavior tree.
+        /// </summary>
+        /// <param name="logger"></param>
+        public static void AddLogger(ILogger logger)
+        {
+            Logger = logger;
+        }
+
         private static readonly Dictionary<string, Func<object[], BehaviorTree?>> RegisteredBuilders = new();
         public static void RegisterClass(string className, Func<object[], BehaviorTree?> factory)
         {

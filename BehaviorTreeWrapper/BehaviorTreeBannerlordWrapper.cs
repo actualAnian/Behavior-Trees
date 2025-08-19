@@ -3,7 +3,6 @@ using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 using BehaviorTreeWrapper.Trees;
 using System;
 using System.Linq;
-using System.Threading;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
@@ -52,7 +51,8 @@ namespace BehaviorTreeWrapper
         private static void RegisterDefaultTrees()
         {
             BTRegister.RegisterClass("PerformAnAttackTree", objects => PerformAnAttackTree.BuildTree(objects));
-            
+            // add logger
+            BTRegister.AddLogger(new BannerlordLogger());
         }
         internal BehaviorTree? AddBehaviorTree(string treeName, object[] args)
         {
@@ -67,7 +67,7 @@ namespace BehaviorTreeWrapper
                 BehaviorTree? tree = BTRegister.Build(treeName, args);
                 if (tree == null)
                 {
-                    InformationManager.DisplayMessage(new($"Could not find a tree with name {treeName}"));
+                    InformationManager.DisplayMessage(new($"Error building a a tree with name {treeName}"));
                     return null;
                 }
                 else
@@ -86,7 +86,7 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed && _missionLogic != null)
             {
-                _missionLogic.trees[agent].Dispose();
+                //_missionLogic.trees[agent].Dispose();
                 _missionLogic.trees.Remove(agent);
             }
         }
@@ -94,10 +94,6 @@ namespace BehaviorTreeWrapper
         {
             if (!_disposed)
             {
-                foreach (BehaviorTree tree in CurrentMissionLogic.trees.Values)
-                {
-                    tree.Dispose();
-                }
                 CurrentMissionLogic = null;
                 _disposed = true;
             }
