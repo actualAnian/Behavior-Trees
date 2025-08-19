@@ -13,9 +13,5 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-	  <Exec Command="xcopy /y /d &quot;$(ProjectDir)\\bin\Debug\net472\\BehaviorTree*&quot; &quot;$(BANNERLORD_GAME_DIR)\Modules\RealmsForgotten\bin\Win64_Shipping_Client&quot;" />
-	</Target>
-
 
 </Project>
