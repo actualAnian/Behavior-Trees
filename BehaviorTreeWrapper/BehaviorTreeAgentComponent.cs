@@ -7,7 +7,7 @@ namespace BehaviorTreeWrapper
 {
     public class BehaviorTreeAgentComponent : AgentComponent
     {
-        BehaviorTree? Tree { get; set; }
+        public BehaviorTree? Tree { get; private set; }
         float timeSinceLastEvaluation;
         public BehaviorTreeAgentComponent(Agent agent, string treeName, params object[] args) : base(agent)
         {

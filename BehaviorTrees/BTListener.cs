@@ -7,8 +7,8 @@ namespace BehaviorTrees
     public abstract class BTListener
     {
         public BehaviorTree Tree { get; private set; }
-        public BTEventDecorator Notifies { get; private set; }
-        protected BTListener(BehaviorTree tree, BTEventDecorator notifies)
+        public IBTNotifiable Notifies { get; private set; }
+        protected BTListener(BehaviorTree tree, IBTNotifiable notifies)
         {
             Notifies = notifies;
             Tree = tree;

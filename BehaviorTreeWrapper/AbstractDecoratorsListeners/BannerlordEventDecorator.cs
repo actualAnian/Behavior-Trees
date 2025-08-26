@@ -11,7 +11,7 @@ namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
         }
         public override sealed void CreateListener()
         {
-            listener = new BannerlordBTListener(subscribesTo, Tree, this);
+            Listener = new BannerlordBTListener(subscribesTo, Tree, this);
         }
     }
 }

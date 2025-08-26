@@ -12,7 +12,7 @@ namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
         }
         public override sealed void CreateListener()
         {
-            listener = new BannerlordBTTickListener(secondsTillEvent, Tree, this);
+            Listener = new BannerlordBTTickListener(secondsTillEvent, Tree, this);
         }
     }
 }

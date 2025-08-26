@@ -1,39 +1,42 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using BehaviorTrees.Nodes;
+﻿using BehaviorTrees.Nodes;
 
 namespace BehaviorTrees
 {
     public abstract class AbstractDecorator
     {
         public BTNode NodeBeingDecoracted { get; internal set; }
-
         protected internal AbstractDecorator() {}
         abstract public bool Evaluate();
         abstract internal bool HandleEvaluation();
     }
-    public abstract class BTEventDecorator : AbstractDecorator
+    public interface IBTNotifiable
     {
-        protected BTListener listener;
+        public BTListener Listener { get; set; }
+        public void HandleNotification(object[] data);
+        public BehaviorTree Tree { get; set; }
+        public abstract void CreateListener();
+    }
+
+    public abstract class BTEventDecorator : AbstractDecorator, IBTNotifiable
+    {
+        public BTListener Listener { get; set; }
+        public BehaviorTree Tree { get; set; }
         public abstract void Notify(object[] data);
-        internal virtual void HandleNotification(object[] data)
+        public void HandleNotification(object[] data)
         {
             Notify(data);
             NodeBeingDecoracted.Parent.Status = BTStatus.ReceivedEvent;
             Tree.NodeReceivingEvent = NodeBeingDecoracted;
             Tree.ShouldRunNextTick = true;
         }
-        internal protected BehaviorTree Tree { get; set; }
         public void AddListener()
         {
             NodeBeingDecoracted.Parent.Status = BTStatus.WaitingForEvent;
-            listener.Subscribe();
+            Listener.Subscribe();
         }
         public void Remove()
         {
-            listener.UnSubscribe();
+            Listener.UnSubscribe();
         }
         internal override bool HandleEvaluation()
         {

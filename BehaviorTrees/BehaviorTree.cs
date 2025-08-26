@@ -21,7 +21,7 @@ namespace BehaviorTrees
     }
     public abstract class BehaviorTree
     {
-        private bool _disposed = false;
+        public bool IsRunning { get; private set; } = true;
         public readonly int _rootEvaluationDelay = 2000; // miliseconds
 
         public bool ShouldRunNextTick { get; internal set; }
@@ -35,23 +35,33 @@ namespace BehaviorTrees
         }
         public void RunTree()
         {
-            if (CurrentNode.Status == BTStatus.NotExecuted) // will only be hit when the tree is in root
-                CurrentNode.HandleExecute();
-            if (CurrentNode.ShouldExitTree())
-                return;
-            do
+            if (!IsRunning) return;
+            try
             {
-                CurrentNode = CurrentNode.HandleExecute();
-
+                if (CurrentNode.Status == BTStatus.NotExecuted) // will only be hit when the tree is in root
+                    CurrentNode.HandleExecute();
                 if (CurrentNode.ShouldExitTree())
                     return;
+                do
+                {
+                    CurrentNode = CurrentNode.HandleExecute();
 
-            } while (CurrentNode != RootNode);
+                    if (CurrentNode.ShouldExitTree())
+                        return;
 
-            if (CurrentNode == RootNode && RootNode is BTControlNode controlRoot)
+                } while (CurrentNode != RootNode);
+
+                if (CurrentNode == RootNode && RootNode is BTControlNode controlRoot)
+                {
+                    controlRoot.ResetChildren();
+                    CurrentNode.Status = BTStatus.NotExecuted;
+                }
+
+            }
+            catch (Exception ex)
             {
-                controlRoot.ResetChildren();
-                CurrentNode.Status = BTStatus.NotExecuted;
+                BTRegister.Logger?.LogMessage($"Exception running the behavior tree: {ex.Message}");
+                IsRunning = false;
             }
         }
         protected static BehaviorTreeBuilder<TTree> StartBuildingTree<TTree>(TTree tree) where TTree : BehaviorTree

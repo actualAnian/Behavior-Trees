@@ -102,7 +102,7 @@ namespace BehaviorTrees.Nodes
                         ResetChildren();
                         return Parent;
                     }
-                    return allChildren[alreadyExecutedNodes];
+                    return this;
 
                 case BTStatus.FinishedWithFalse:
                     IsWaitingASingleTime = false;

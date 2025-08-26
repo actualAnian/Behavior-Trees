@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using BehaviorTrees.Nodes;
 
 namespace BehaviorTrees
@@ -44,14 +45,18 @@ namespace BehaviorTrees
             TreeBeingBuild.CurrentNode = _currentNode;
             _currentNode.Parent = _currentNode;
         }
+        private void SetINotifiable(object obj)
+        {
+            if (obj is IBTNotifiable notifiable)
+            {
+                notifiable.Tree = TreeBeingBuild;
+                notifiable.CreateListener();
+            }
+        }
         private void SetDecorator<DDecorator>(DDecorator decorator) where DDecorator : AbstractDecorator
         {
             CopyAllInterfacesProperties(decorator);
-            if (decorator is BTEventDecorator eventDecorator)
-            {
-                eventDecorator.Tree = TreeBeingBuild;
-                eventDecorator.CreateListener();
-            }
+            SetINotifiable(decorator);
             decorator.NodeBeingDecoracted = _currentNode;
         }
         /// <summary>
@@ -176,6 +181,7 @@ namespace BehaviorTrees
             _currentNode = _previousNodes.Pop();
             return this;
         }
+
         /// <summary>
         /// Adds a task to the tree.
         /// </summary>
@@ -217,6 +223,17 @@ namespace BehaviorTrees
                     throw new IncorrectPropertyException(source, property);
                 }
             }
+        }
+        /// <summary>
+        /// adds the constant listener, which is always listening for events, for the tree. (independent of current node, does not matter where it is placed during tree building)
+        /// </summary>
+        /// <param name="listener"></param>
+        /// <returns></returns>
+        public BehaviorTreeBuilder<TTree> AddConstantEventListener<CEL>(CEL listener) where CEL : ConstantEventListener
+        {
+            CopyAllInterfacesProperties(listener);
+            SetINotifiable(listener);
+            return this;
         }
         /// <summary>
         /// Finish building the tree.
