@@ -75,8 +75,9 @@ namespace BehaviorTrees.Nodes
                             if (node.Decorator!.Evaluate())
                             {
                                 lastChild = node;
+                                currentlyExecutableChildren.Add(node);
                                 Status = BTStatus.Running;
-                                return this;
+                                return node;
                             }
                             else //node.Decorator must be BTEventDecorator
                             {
