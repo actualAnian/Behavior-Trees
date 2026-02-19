@@ -6,17 +6,16 @@ using static TaleWorlds.MountAndBlade.Agent;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class AlarmedDecorator : BannerlordEventDecorator, IBTBannerlordBase
+    public class AlarmedDecorator : BannerlordEventDecorator
     {
-        BTBlackboardValue<Agent> _agent;
-        public BTBlackboardValue<Agent> Agent { get => _agent; set => _agent = value; }
+        readonly BTBlackboardBannerlordBase _bbBase;
 
         private bool alreadyAlarmed = false;
-        public AlarmedDecorator(SubscriptionPossibilities SubscribesTo) : base(SubscribesTo) { }
+        public AlarmedDecorator(SubscriptionPossibilities SubscribesTo, BTBlackboardBannerlordBase bbBase) : base(SubscribesTo) { _bbBase = bbBase; }
 
         public override bool Evaluate()
         {
-            if ((Agent.GetValue().AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
+            if ((_bbBase.Agent.AIStateFlags & AIStateFlag.Alarmed) == AIStateFlag.Alarmed && !alreadyAlarmed)
             {
                 alreadyAlarmed = true;
                 return true;

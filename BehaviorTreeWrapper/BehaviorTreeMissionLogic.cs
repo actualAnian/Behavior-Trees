@@ -36,8 +36,8 @@ namespace BehaviorTreeWrapper
 
     public class BehaviorTreeMissionLogic : MissionBehavior
     {
-        static BehaviorTreeMissionLogic _instance;
-        Dictionary<SubscriptionPossibilities, List<BannerlordBTListener>> actions = new();
+        static readonly BehaviorTreeMissionLogic _instance;
+        readonly Dictionary<SubscriptionPossibilities, List<BannerlordBTListener>> actions = new();
         public Dictionary<Agent, BehaviorTree> trees = new();
         private readonly List<(BannerlordBTTickListener listener, double elapsedTime)> tickListeners = new();
         public override MissionBehaviorType BehaviorType => MissionBehaviorType.Other;

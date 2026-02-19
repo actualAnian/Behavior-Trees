@@ -1,21 +1,17 @@
-﻿using System.Threading.Tasks;
-using SandBox;
-using System.Threading;
-using BehaviorTrees.Nodes;
+﻿using BehaviorTrees.Nodes;
 using BehaviorTrees;
 using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Tasks
 {
-    public class ClearMovementTask : BTTask, IBTMovable
+    public class ClearMovementTask : BTTask
     {
-        BTBlackboardValue<AgentNavigator> _navigator;
-        public BTBlackboardValue<AgentNavigator> Navigator { get => _navigator; set => _navigator = value; }
-        public ClearMovementTask() : base() { }
+        readonly BTBlackboardMovable _bbMovable;
+        public ClearMovementTask(BTBlackboardMovable bbMovable) : base() { _bbMovable = bbMovable; }
 
         public override BTTaskStatus Execute()
         {
-            Navigator.GetValue().ClearTarget();
+            _bbMovable.Navigator.ClearTarget();
             return BTTaskStatus.FinishedWithTrue;
         }
     }

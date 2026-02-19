@@ -1,30 +1,21 @@
-﻿using BehaviorTrees;
-using BehaviorTreeWrapper.AbstractDecoratorsListeners;
+﻿using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 using BehaviorTreeWrapper.BlackBoardClasses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class HealthBelowPercentageDecorator : BannerlordNoWaitDecorator, IBTBannerlordBase
+    public class HealthBelowPercentageDecorator : BannerlordNoWaitDecorator
     {
-        BTBlackboardValue<Agent> agent;
-        private int healthPercentageThreshold;
-        public HealthBelowPercentageDecorator(int healthPercentageThreshold)
+        readonly BTBlackboardBannerlordBase _bbBase;
+        readonly float _healthPercentageThreshold;
+        public HealthBelowPercentageDecorator(int healthPercentageThreshold, BTBlackboardBannerlordBase bbBase)
         {
-            this.healthPercentageThreshold = healthPercentageThreshold;
+            _healthPercentageThreshold = healthPercentageThreshold;
+            _bbBase = bbBase;
         }
-
-        public BTBlackboardValue<Agent> Agent { get => agent; set => agent = value; }
-
         public override bool Evaluate()
         {
-            int minHealth = (int)Agent.GetValue().HealthLimit * healthPercentageThreshold / 100;
-            return Agent.GetValue().Health < minHealth;
+            var minHealth = _bbBase.Agent.HealthLimit * _healthPercentageThreshold / 100;
+            return _bbBase.Agent.Health < minHealth;
         }
     }
 }

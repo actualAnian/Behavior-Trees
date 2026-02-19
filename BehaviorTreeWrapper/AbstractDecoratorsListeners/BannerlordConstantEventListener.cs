@@ -4,7 +4,7 @@ namespace BehaviorTreeWrapper.AbstractDecoratorsListeners
 {
     public abstract class BannerlordConstantEventListener : ConstantEventListener
     {
-        SubscriptionPossibilities _subscribesTo;
+        readonly SubscriptionPossibilities _subscribesTo;
         public BannerlordConstantEventListener(SubscriptionPossibilities subscribesTo)
         {
             _subscribesTo = subscribesTo;

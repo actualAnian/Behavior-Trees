@@ -1,28 +1,28 @@
-﻿using System.Threading.Tasks;
-using TaleWorlds.Library;
+﻿using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
-using SandBox;
 using TaleWorlds.Engine;
-using System.Threading;
 using BehaviorTrees.Nodes;
 using BehaviorTrees;
 using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Tasks
 {
-    public class MoveToPlaceTask : BTTask, IBTMovable, IBTBannerlordBase
+    public class MoveToPlaceTask : BTTask
     {
-        BTBlackboardValue<AgentNavigator> _navigator;
-        public BTBlackboardValue<AgentNavigator> Navigator { get => _navigator; set => _navigator = value; }
-        BTBlackboardValue<Agent> _agent;
-        public BTBlackboardValue<Agent> Agent { get => _agent; set => _agent = value; }
-        Vec3 moveTo;
-        public MoveToPlaceTask(Vec3 moveTo) : base() { this.moveTo = moveTo; }
+        readonly BTBlackboardBannerlordBase _bbBase;
+        readonly BTBlackboardMovable _bbMovable;
+        Vec3 _moveTo;
+        public MoveToPlaceTask(Vec3 moveTo, BTBlackboardBannerlordBase bbBase, BTBlackboardMovable bbMovable) : base() 
+        {
+            _moveTo = moveTo;
+            _bbMovable = bbMovable;
+            _bbBase = bbBase;
+        }
 
         public override BTTaskStatus Execute()
         {
-            WorldPosition position = new WorldPosition(Mission.Current.Scene, moveTo);
-            Navigator.GetValue().SetTargetFrame(position, Agent.GetValue().Frame.rotation.f.AsVec2.RotationInRadians);
+            WorldPosition position = new WorldPosition(Mission.Current.Scene, _moveTo);
+            _bbMovable.Navigator.SetTargetFrame(position, _bbBase.Agent.Frame.rotation.f.AsVec2.RotationInRadians);
             return BTTaskStatus.FinishedWithTrue;
         }
     }

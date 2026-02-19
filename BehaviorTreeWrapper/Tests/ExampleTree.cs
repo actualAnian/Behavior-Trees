@@ -8,33 +8,34 @@ using BehaviorTreeWrapper.BlackBoardClasses;
 
 namespace BehaviorTreeWrapper.Tests
 {
-    public class ExampleTree : BehaviorTree, IBTBannerlordBase, IBTMovable
+    public class ExampleTree : BehaviorTree
     {
-        public BTBlackboardValue<AgentNavigator> Navigator { get; set; }
-        public BTBlackboardValue<Agent> Agent { get; set; }
-
-        public ExampleTree(Agent agent) : base(2000)
+        readonly BTBlackboardBannerlordBase _bbBase;
+        readonly BTBlackboardMovable _bbMovable;
+        public ExampleTree(BTBlackboardBannerlordBase bbBase, BTBlackboardMovable bbMovable) : base(2000)
         {
-            Navigator = new BTBlackboardValue<AgentNavigator>(agent.GetComponent<CampaignAgentComponent>().CreateAgentNavigator());
-            Agent = new BTBlackboardValue<Agent>(agent);
+            _bbBase = bbBase;
+            _bbMovable = bbMovable;
         }
         public static new BehaviorTree? BuildTree(object[] objects)
         {
             if (objects[0] is not Agent agent) return null;
             
             Vec3 position = new(373, 295, 20);
-            ExampleTree? tree = StartBuildingTree(new ExampleTree(agent))
+            BTBlackboardBannerlordBase bbBase = new(agent);
+            BTBlackboardMovable bbMovable = new(agent);
+
+            ExampleTree? tree = StartBuildingTree(new ExampleTree(bbBase, bbMovable))
                 .AddSelector("main")
-                    //.AddTask(new PrintQuickMessageFalseTask("Begin the tree!"))
-                    .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged))
+                    .AddSequence("spotted", new AlarmedDecorator(SubscriptionPossibilities.OnSelfAlarmedStateChanged, bbBase))
                         .AddTask(new PrintQuickMessageTask("I am spotted"))
                         .Up()
                     .AddSequence("hit", new HitDecorator(SubscriptionPossibilities.OnSelfIsHit))
-                        .AddTask(new MoveToPlaceTask(position))
+                        .AddTask(new MoveToPlaceTask(position, bbBase, bbMovable))
                         .AddTask(new PrintQuickMessageTask("I am hit"))
                         .Up()
-                    .AddSequence("moved", new InPositionDecorator(position))
-                        .AddTask(new ClearMovementTask())
+                    .AddSequence("moved", new InPositionDecorator(position, bbBase))
+                        .AddTask(new ClearMovementTask(bbMovable))
                         .Up()
                     .AddSequence("moved", new WaitNSecondsTickDecorator(5))
                         .AddTask(new PrintQuickMessageTask("5 seconds passed"))

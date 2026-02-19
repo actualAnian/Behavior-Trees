@@ -13,24 +13,25 @@ using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.Trees
 {
-    public class PerformAnAttackTree : BehaviorTree, IBTBannerlordBase
+    public class PerformAnAttackTree : BehaviorTree
     {
+        BTBlackboardBannerlordBase _bbBase;
         public BTBlackboardValue<Agent> Agent { get; set; }
 
-        public PerformAnAttackTree(Agent agent) : base(2000)
+        public PerformAnAttackTree(BTBlackboardBannerlordBase bbBase) : base(2000)
         {
-            Agent = new BTBlackboardValue<Agent>(agent);
+            _bbBase = bbBase;
         }
-        // agent, attack_string_id, time to sleep afterwards
         public static new BehaviorTree BuildTree(object[] objects)
         {
             if (objects[0] is not Agent agent ||
                 objects[1] is not string attackId ||
                 objects[2] is not int sleepMiliseconds) throw new IncorrectParametersException(typeof(PerformAnAttackTree));
 
-            PerformAnAttackTree? tree = StartBuildingTree(new PerformAnAttackTree(agent))
+            var bbBase = new BTBlackboardBannerlordBase(agent);
+            PerformAnAttackTree? tree = StartBuildingTree(new PerformAnAttackTree(bbBase))
                 .AddSequence("make_attack")
-                    .AddTask(new PlayAnimationTask(attackId))
+                    .AddTask(new PlayAnimationTask(attackId, bbBase))
                     .AddTask(new SleepTask(new TimeSpan(0, 0, 2)))
                     .Up()
                 .Finish();

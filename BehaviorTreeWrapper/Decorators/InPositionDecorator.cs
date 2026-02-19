@@ -1,25 +1,21 @@
-﻿using BehaviorTrees;
-using BehaviorTreeWrapper.AbstractDecoratorsListeners;
+﻿using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 using BehaviorTreeWrapper.BlackBoardClasses;
-using System.Collections.Generic;
 using TaleWorlds.Library;
-using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.Decorators
 {
-    public class InPositionDecorator : BannerlordTickTimedDecorator, IBTBannerlordBase
+    public class InPositionDecorator : BannerlordTickTimedDecorator
     {
-        private Vec3 position;
-        public InPositionDecorator(Vec3 position) : base(1)
+        private Vec3 _position;
+        readonly BTBlackboardBannerlordBase _bbBase;
+        public InPositionDecorator(Vec3 position, BTBlackboardBannerlordBase bbBase) : base(1)
         {
-            this.position = position;
+            _position = position;
+            _bbBase = bbBase;
         }
-        BTBlackboardValue<Agent> _agent;
-        public BTBlackboardValue<Agent> Agent { get => _agent; set => _agent = value; }
-
         public override bool Evaluate()
         {
-            return Agent.GetValue().Position.Distance(position) < 2;
+            return _bbBase.Agent.Position.Distance(_position) < 2;
         }
         public override void Notify(object[] data) { }
     }

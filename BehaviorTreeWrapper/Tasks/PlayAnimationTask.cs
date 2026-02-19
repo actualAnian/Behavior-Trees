@@ -1,35 +1,23 @@
 ﻿using BehaviorTrees;
 using BehaviorTrees.Nodes;
 using BehaviorTreeWrapper.BlackBoardClasses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
 
 namespace BehaviorTreeWrapper.Tasks
 {
-    public class PlayAnimationTask : BTTask, IBTBannerlordBase
+    public class PlayAnimationTask : BTTask
     {
-        string actionId;
-        public PlayAnimationTask(string actionId)
+        readonly string _actionId;
+        readonly BTBlackboardBannerlordBase _bbBase;
+        public PlayAnimationTask(string actionId, BTBlackboardBannerlordBase bbBase)
         {
-            this.actionId = actionId;
+            _actionId = actionId;
+            _bbBase = bbBase;
         }
-        BTBlackboardValue<Agent> agent;
-        public BTBlackboardValue<Agent> Agent { get => agent; set => agent = value; }
         public override BTTaskStatus Execute()
         {
-            Agent.GetValue().SetActionChannel(0, ActionIndexCache.Create(actionId), true);
+            _bbBase.Agent.SetActionChannel(0, ActionIndexCache.Create(_actionId), true);
             return BTTaskStatus.FinishedWithTrue;
         }
-        //public override async Task<bool> Execute(CancellationToken cancellationToken)
-        //{
-        //    Agent.GetValue().SetActionChannel(0, ActionIndexCache.Create(actionId), true);
-        //    return true;
-        //}
     }
 }

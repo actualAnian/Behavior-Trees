@@ -1,6 +1,4 @@
-﻿using BehaviorTrees;
-using BehaviorTreeWrapper.AbstractDecoratorsListeners;
-using System.Collections.Generic;
+﻿using BehaviorTreeWrapper.AbstractDecoratorsListeners;
 
 namespace BehaviorTreeWrapper.Decorators
 {

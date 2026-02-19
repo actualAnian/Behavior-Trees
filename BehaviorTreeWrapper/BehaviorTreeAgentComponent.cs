@@ -25,7 +25,7 @@ namespace BehaviorTreeWrapper
         {
             BehaviorTreeBannerlordWrapper.Instance.DisposeTree(Agent);
         }
-        public override void OnTickAsAI(float dt)
+        public override void OnTick(float dt)
         {
             if (Tree == null) return;
             timeSinceLastEvaluation += dt;

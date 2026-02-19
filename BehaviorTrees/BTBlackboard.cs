@@ -20,4 +20,14 @@
             this.value = value;
         }
     }
+
+    /*
+     * new blackboard type:
+     * simply a class
+     * the tree should have a list of blackboard objects
+     * tasks, decorators take blackboard objects as parameters in constructors
+     */
+    public interface NewIBTBlackboard
+    {
+    }
 }
